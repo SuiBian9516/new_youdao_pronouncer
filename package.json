@@ -23,24 +23,17 @@
     "@electron-toolkit/utils": "^4.0.0"
   },
   "devDependencies": {
-    "@electron-toolkit/eslint-config-prettier": "^3.0.0",
-    "@electron-toolkit/eslint-config-ts": "^3.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
-    "@types/node": "^20.10.0",
-    "@types/react": "^18.2.15",
-    "@types/react-dom": "^18.2.7",
-    "@vitejs/plugin-react": "^4.0.4",
-    "electron": "^25.8.4",
-    "electron-builder": "^24.6.4",
-    "electron-vite": "^1.0.27",
-    "eslint": "^8.47.0",
-    "eslint-plugin-react": "^7.33.2",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.3",
-    "prettier": "^3.0.2",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "@types/node": "^22.14.1",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^4.4.0",
+    "electron": "35.0.1",
+    "electron-builder": "^26.0.12",
+    "electron-vite": "^3.1.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "typescript": "^5.1.6",
-    "vite": "^4.4.9"
+    "vite": "^6.3.2"
   }
 }
