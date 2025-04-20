@@ -1,0 +1,83 @@
+/* src/index.css */
+/* 全局样式 */
+body {
+  font-family: "Arial", sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f0f8ff;
+  color: #6c757d;
+}
+
+/* 按钮样式 */
+.ant-btn-primary {
+  background-color: #1890ff;
+  border-color: #1890ff;
+  border-radius: 8px;
+}
+
+  .ant-btn-primary:hover {
+    background-color: #40a9ff;
+    border-color: #40a9ff;
+  }
+
+/* 模态框样式 */
+.ant-modal-content {
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ant-modal-header {
+  background-color: #e6f7ff;
+}
+
+.ant-modal-title {
+  color: #1890ff;
+}
+
+/* 列表样式 */
+.ant-list-item {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 8px;
+  padding: 16px;
+}
+
+  .ant-list-item:hover {
+    background-color: #f9f9f9;
+  }
+
+/* 输入框样式 */
+.ant-input {
+  border-radius: 8px;
+  border-color: #d9d9d9;
+}
+
+  .ant-input:focus {
+    border-color: #1890ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  }
+
+/* 复选框样式 */
+.ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+/* 自定义样式 */
+.header .ant-btn {
+  border-radius: 8px;
+}
+
+.feature-card {
+  background: linear-gradient(to bottom, #ffffff, #e6f7ff);
+  border-radius: 8px;
+}
+
+.batch-delete {
+  margin-bottom: 16px;
+}
+
+.modal-input {
+  margin-bottom: 16px;
+}
