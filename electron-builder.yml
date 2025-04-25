@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: new_youdao_pronouncer
+productName: YoudaoPronouncer
 directories:
   buildResources: build
 files:
@@ -11,8 +11,16 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
+  - node_modules/@ffmpeg-installer/ffmpeg/**
+  - node_modules/@ffprobe-installer/ffprobe/**
+
+extraResources:
+  - from: "resources/font.ttf"
+    to: "font.ttf"
+
 win:
-  executableName: new_youdao_pronouncer
+  executableName: youdao_pronouncer
+  icon: app.ico
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
