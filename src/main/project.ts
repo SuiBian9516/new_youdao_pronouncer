@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import Utils from "./utils";
 import Database from "./database";
 import Fetcher from "./fetcher";
+import Generator from "./generator";
+import Logger from "./logger";
 
 export default class Project{
   private name:string;
@@ -14,7 +16,7 @@ export default class Project{
   private CACHE_VIDEO_PATH:string;
   private CACHE_IMAGE_PATH:string;
   private database:Database;
-  // private manifest:ProjectManifest;
+  private manifest:ProjectManifest;
 
   constructor(name:string,path:string){
     this.name = name;
@@ -32,11 +34,13 @@ export default class Project{
     this.database = new Database(JSON.parse(fs.readFileSync(this.DATABASE_PATH,{encoding:"utf-8"})),this.DATABASE_PATH);
     let manifest:ProjectManifest = {
       name:this.name,
-      backgroundColor:'#FFFFFF',
-      font:''
+      backgroundColor:'#000000',
+      characterColor:["#FFFFFF","#E0C410"],
+      title:'',
+      subtitle:''
     }
     Utils.checkFile(this.MANIFEST_PATH,JSON.stringify(manifest,null,2));
-    // this.manifest = JSON.parse(fs.readFileSync(this.MANIFEST_PATH,{encoding:"utf-8"}));
+    this.manifest = JSON.parse(fs.readFileSync(this.MANIFEST_PATH,{encoding:"utf-8"}));
   }
 
   public getDatabase():Database{
@@ -44,12 +48,62 @@ export default class Project{
   }
 
   public getFetcher(appKey:string,secretKey:string,pixabayKey:string):Fetcher{
-    return this.database.initFetcher(appKey,secretKey,pixabayKey,this.CACHE_AUDIO_PATH,this.CACHE_IMAGE_PATH);
+    return this.getDatabase().initFetcher(appKey,secretKey,pixabayKey,this.CACHE_AUDIO_PATH,this.CACHE_IMAGE_PATH);
+  }
+
+  public async generateVideo(dest:string){
+    let generator = new Generator(this.manifest.backgroundColor,this.manifest.characterColor);
+    await generator.generate_videos(this.manifest.title,this.manifest.subtitle,this.CACHE_VIDEO_PATH,this.database.getItems(),dest);
+  }
+
+  public getName(): string {
+    return this.name;
+  }
+  
+  public getPath(): string {
+    return this.path;
+  }
+  
+  public getManifest(): ProjectManifest {
+    return this.manifest;
+  }
+
+  public updateManifest(newManifest: ProjectManifest): boolean {
+    try {
+      newManifest.name = this.name;
+      
+      this.manifest = newManifest;
+      
+      fs.writeFileSync(this.MANIFEST_PATH, JSON.stringify(this.manifest, null, 2), {encoding: "utf-8"});
+      
+      return true;
+    } catch (error) {
+      console.error("Fail to update manifest:", error);
+      return false;
+    }
+  }
+
+  public getAudioCachePath():string{
+    return this.CACHE_AUDIO_PATH;
+  }
+
+  public getImageCachePath():string{
+    return this.CACHE_IMAGE_PATH;
+  }
+
+  public clearCache(){
+    fs.rmSync(this.CACHE_VIDEO_PATH,{recursive:true,force:true});
+    fs.rmSync(this.CACHE_AUDIO_PATH,{recursive:true,force:true});
+    fs.rmSync(this.CACHE_IMAGE_PATH,{recursive:true,force:true});
+    this.getDatabase().clearAllPath();
+    Logger.getInstance().info('Cache has been cleared','project');
   }
 }
 
 export interface ProjectManifest{
   name:string,
   backgroundColor:string,
-  font:string
+  characterColor:[string,string],
+  title:string,
+  subtitle:string
 }

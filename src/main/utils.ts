@@ -41,4 +41,24 @@ export default class Utils{
   static checkFileExistence(path:string):boolean{
     return fs.existsSync(path);
   }
+
+  static generateRandomString(length:number,list:string[]):string{
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * chars.length);
+      result += chars[randomIndex];
+    }
+
+    if(result in list){
+      return this.generateRandomString(length,list);
+    }else{
+      return result;
+    }
+  }
+
+  public static trimString(str:string, start:number, end:number) {
+    return str.slice(start, str.length - end);
+  }
 }

@@ -12,8 +12,8 @@ export default class Fetcher{
   private pixabayKey:string;
   private readonly audioHost:string = 'https://openapi.youdao.com/ttsapi';
   private readonly imageHost:string = 'https://pixabay.com/api/';
-  private audioQueue = new Queue<()=>void>();
-  private imageQueue = new Queue<()=>void>();
+  private audioQueue = new Queue<()=>Promise<void>>();
+  private imageQueue = new Queue<()=>Promise<void>>();
 
   constructor(appKey:string,secretKey:string,pixabayKey:string){
     this.appKey = appKey;
@@ -50,7 +50,6 @@ export default class Fetcher{
   }
 
   public addAudioTask(request:string,path:string){
-    let queue = this.audioQueue;
     let handler = async () =>{
       try{
         if(!Utils.checkFileExistence(path)){
@@ -59,19 +58,13 @@ export default class Fetcher{
             responseType:'arraybuffer'
           });
           if(response.headers['content-type'].includes('audio')){
-            fs.writeFileSync(path,response.data,{flag:'w'});
-            if(!queue.isEmpty()){
-              (queue.dequeue())()
-            }
+            await fs.promises.writeFile(path,response.data,{flag:'w'});
+            return;
           }else if(response.headers['content-type'].includes('json')){
             Logger.getInstance().error("Error when fetching audio: " + response.data.toString(),"fetcher");
           }
         }else{
-          Logger.getInstance().debug(path,'test')
-          Logger.getInstance().debug("skip","fetcher");
-          if(!queue.isEmpty()){
-            (queue.dequeue())()
-          }
+          return;
         }
       }catch(error){
         if (axios.isAxiosError(error)) {
@@ -84,7 +77,6 @@ export default class Fetcher{
   }
 
   public addImageTask(request:string,path:string){
-    let queue = this.imageQueue;
     let handler = async () =>{
       try{
         if(fs.readdirSync(path).length == 0){
@@ -95,25 +87,17 @@ export default class Fetcher{
           });
     
           if(!images){
-            if(!queue.isEmpty()){
-              (queue.dequeue())()
-            }
+            return;
           }
     
           for(let i = 0;i < images.length;i++){
             let response = await axios.get(images[i].webformatURL,{responseType:'arraybuffer'});
-            fs.writeFileSync(join(path,`image_${i}.png`),response.data,{flag:'w'});
+            await fs.promises.writeFile(join(path,`image_${i}.png`),response.data,{flag:'w'});
           }
     
-          if(!queue.isEmpty()){
-            (queue.dequeue())()
-          }
+          return;
         }else{
-          Logger.getInstance().debug(path,'test')
-          Logger.getInstance().debug("skip","fetcher");
-          if(!queue.isEmpty()){
-            (queue.dequeue())()
-          }
+          return;
         }
       }catch(error){
         if (axios.isAxiosError(error)) {
@@ -126,14 +110,14 @@ export default class Fetcher{
   }
 
   public async audioFetch(){
-    if(!this.audioQueue.isEmpty()){
-      (this.audioQueue.dequeue())()
+    while(!this.audioQueue.isEmpty()){
+      await (this.audioQueue.dequeue())();
     }
   }
 
   public async imageFetch(){
-    if(!this.imageQueue.isEmpty()){
-      (this.imageQueue.dequeue())()
+    while(!this.imageQueue.isEmpty()){
+      await (this.imageQueue.dequeue())();
     }
   }
 
