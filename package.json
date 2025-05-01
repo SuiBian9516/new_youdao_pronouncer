@@ -14,13 +14,13 @@
   "scripts": {
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
-    "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "typecheck": "yarn typecheck:node && yarn typecheck:web",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "postinstall": "electron-builder install-app-deps",
-    "build:unpack": "npm run build && electron-builder --dir",
-    "build": "npm run typecheck && electron-vite build",
-    "build:win": "npm run build && electron-builder --win",
+    "build:unpack": "yarn build && electron-builder --dir",
+    "build": "yarn typecheck && electron-vite build",
+    "build:win": "yarn build && electron-builder --win",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,html,css}\"",
     "format:src": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,html,css}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,html,css}\""
