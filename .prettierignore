@@ -1,0 +1,30 @@
+# 构建输出
+out/
+dist/
+build/
+
+# Node.js 依赖
+node_modules/
+
+# 日志文件
+pronouncer/logs/
+*.log
+
+# 缓存目录
+pronouncer/projects/*/cache/
+
+# 特定类型的文件
+*.mp3
+*.mp4
+*.png
+*.ico
+*.ttf
+
+# 配置文件
+pronouncer/config.json
+pronouncer/projects/*/database.json
+pronouncer/projects/*/manifest.json
+
+# 其他系统文件
+.DS_Store
+Thumbs.db

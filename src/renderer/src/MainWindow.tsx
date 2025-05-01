@@ -1,7 +1,7 @@
-import { 
-  Box, 
-  Button, 
-  Typography, 
+import {
+  Box,
+  Button,
+  Typography,
   styled,
   IconButton,
   useMediaQuery,
@@ -23,17 +23,17 @@ const MainWindow = ({
   onCreateProject,
   onOpenProject,
   onOpenSettings,
-  backgroundUrl
+  backgroundUrl,
 }: MainWindowProps) => {
   const theme = useMuiTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const isMediumScreen = useMediaQuery(theme.breakpoints.between('sm', 'md'));
-  
+
   const titleVariant = isSmallScreen ? 'h4' : isMediumScreen ? 'h3' : 'h2';
   const iconSize = isSmallScreen ? 80 : isMediumScreen ? 100 : 120;
   const buttonSize = isSmallScreen ? 150 : 180;
   const buttonIconSize = isSmallScreen ? 40 : 50;
-  
+
   const DynamicStyledButton = styled(Button)(() => ({
     margin: '15px',
     padding: '0px',
@@ -69,7 +69,7 @@ const MainWindow = ({
         left: 0,
       }}
     >
-      <Box 
+      <Box
         sx={{
           display: 'flex',
           flexDirection: 'column',
@@ -77,9 +77,9 @@ const MainWindow = ({
           width: '100%',
         }}
       >
-        <Box 
-          sx={{ 
-            display: 'flex', 
+        <Box
+          sx={{
+            display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             marginBottom: isSmallScreen ? 4 : 8,
@@ -92,24 +92,28 @@ const MainWindow = ({
           }}
         >
           <Box
-            component="img" 
-            src={iconPath} 
+            component="img"
+            src={iconPath}
             alt="YoudaoPronouncer"
             sx={{
               height: iconSize,
               width: iconSize,
-              marginBottom: isSmallScreen ? 1 : 3
+              marginBottom: isSmallScreen ? 1 : 3,
             }}
           />
-          <Typography variant={titleVariant} component="h1" sx={{ 
-            fontWeight: 'bold',
-            color: '#ffffff',
-            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)'
-          }}>
+          <Typography
+            variant={titleVariant}
+            component="h1"
+            sx={{
+              fontWeight: 'bold',
+              color: '#ffffff',
+              textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)',
+            }}
+          >
             YoudaoPronouncer
           </Typography>
         </Box>
-        <Box 
+        <Box
           sx={{
             display: 'flex',
             flexDirection: isSmallScreen ? 'column' : 'row',
@@ -119,8 +123,8 @@ const MainWindow = ({
             width: '100%',
           }}
         >
-          <DynamicStyledButton 
-            variant="contained" 
+          <DynamicStyledButton
+            variant="contained"
             color="primary"
             style={{ backgroundColor: '#146ccc' }}
             onClick={onCreateProject}
@@ -128,21 +132,23 @@ const MainWindow = ({
             <AddIcon sx={{ fontSize: buttonIconSize, marginBottom: isSmallScreen ? 1 : 2 }} />
             新建项目
           </DynamicStyledButton>
-          <DynamicStyledButton 
-            variant="contained" 
+          <DynamicStyledButton
+            variant="contained"
             color="primary"
             style={{ backgroundColor: '#146ccc' }}
             onClick={onOpenProject}
           >
-            <FolderOpenIcon sx={{ fontSize: buttonIconSize, marginBottom: isSmallScreen ? 1 : 2 }} />
+            <FolderOpenIcon
+              sx={{ fontSize: buttonIconSize, marginBottom: isSmallScreen ? 1 : 2 }}
+            />
             打开项目
           </DynamicStyledButton>
         </Box>
       </Box>
-      <IconButton 
-        sx={{ 
-          position: 'absolute', 
-          bottom: 20, 
+      <IconButton
+        sx={{
+          position: 'absolute',
+          bottom: 20,
           right: 20,
           backgroundColor: 'transparent',
           color: 'white',
@@ -154,7 +160,7 @@ const MainWindow = ({
         }}
         onClick={onOpenSettings}
       >
-        <SettingsIcon fontSize={isSmallScreen ? "medium" : "large"} />
+        <SettingsIcon fontSize={isSmallScreen ? 'medium' : 'large'} />
       </IconButton>
     </Box>
   );

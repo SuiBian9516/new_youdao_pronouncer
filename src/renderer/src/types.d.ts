@@ -63,7 +63,10 @@ interface Window {
       manifest?: any;
       message?: string;
     }>;
-    updateProjectManifest: (projectName: string, manifest: any) => Promise<{
+    updateProjectManifest: (
+      projectName: string,
+      manifest: any
+    ) => Promise<{
       success: boolean;
       message: string;
     }>;
@@ -71,7 +74,11 @@ interface Window {
       canceled: boolean;
       filePaths: string[];
     }>;
-    createProject: (projectInfo: { name: string; path: string }) => Promise<{
+    createProject: (projectInfo: {
+      name: string;
+      path: string;
+      manifest: ProjectManifest;
+    }) => Promise<{
       success: boolean;
       message: string;
     }>;
@@ -97,7 +104,10 @@ interface Window {
       success: boolean;
       message: string;
     }>;
-    generateVideo: (projectName: string, outputPath?: string) => Promise<{
+    generateVideo: (
+      projectName: string,
+      outputPath?: string
+    ) => Promise<{
       success: boolean;
       filePath?: string;
       message: string;
@@ -118,12 +128,19 @@ interface Window {
       base64?: string;
       message?: string;
     }>;
-    setItemAudio: (itemName: string, audioPath: string, isExample: boolean) => Promise<{
+    setItemAudio: (
+      itemName: string,
+      audioPath: string,
+      isExample: boolean
+    ) => Promise<{
       success: boolean;
       message: string;
       path?: string;
     }>;
-    setItemImage: (itemName: string, imagePath: string) => Promise<{
+    setItemImage: (
+      itemName: string,
+      imagePath: string
+    ) => Promise<{
       success: boolean;
       message: string;
       path?: string;
@@ -137,15 +154,32 @@ interface Window {
       canceled: boolean;
       filePaths: string[];
     }>;
-    setDefaultImage: (itemName:string, imagePath:string) => Promise<{
-      success:boolean,
-      message: string
+    setDefaultImage: (
+      itemName: string,
+      imagePath: string
+    ) => Promise<{
+      success: boolean;
+      message: string;
     }>;
     clearProjectCache: (projectName: string) => Promise<{
-      success:boolean,
-      message: string
+      success: boolean;
+      message: string;
     }>;
-    importDataByAI: (data:string) => Promise<{success:boolean,message:string}>;
-    buildExampleByAI: (item:string,explanation:string) => Promise<{success:boolean,message:string,data:[string,string]}>;
+    importDataByAI: (data: string) => Promise<{ success: boolean; message: string }>;
+    buildExampleByAI: (
+      item: string,
+      explanation: string
+    ) => Promise<{ success: boolean; message: string; data: [string, string] }>;
+    fetchAllData: () => Promise<{ success: boolean; message: string }>;
+    onFetchingProgress: (callback: (message: string) => Promise<void>) => Promise<void>;
+    onGeneratingProgress: (callback: (message: string) => Promise<void>) => Promise<void>;
   };
+}
+
+interface ProjectManifest {
+  name: string;
+  backgroundColor: string;
+  characterColor: [string, string];
+  title: string;
+  subtitle: string;
 }

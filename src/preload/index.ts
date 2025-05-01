@@ -1,71 +1,71 @@
-import { contextBridge, ipcRenderer } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+import { contextBridge, ipcRenderer } from 'electron';
+import { electronAPI } from '@electron-toolkit/preload';
 
 const api = {
   fetchBingWallpaper: async () => {
-    return await ipcRenderer.invoke('fetch-bing-wallpaper')
+    return await ipcRenderer.invoke('fetch-bing-wallpaper');
   },
   getConfig: async () => {
     return await ipcRenderer.invoke('setting:get');
   },
-  saveConfig: async (config) => {
+  saveConfig: async config => {
     return await ipcRenderer.invoke('setting:save', config);
   },
-  getProjects: async() => {
+  getProjects: async () => {
     return await ipcRenderer.invoke('project:get-all');
   },
-  openProject: async(projectName: string) => {
+  openProject: async (projectName: string) => {
     return await ipcRenderer.invoke('project:open', projectName);
   },
-  deleteProject: async(projectName: string) => {
+  deleteProject: async (projectName: string) => {
     return await ipcRenderer.invoke('project:delete', projectName);
   },
-  newProject: async(projectName:string) =>{
-    return await ipcRenderer.invoke('project:new',projectName);
+  newProject: async (projectName: string) => {
+    return await ipcRenderer.invoke('project:new', projectName);
   },
-  getProjectManifest: async(projectName: string) => {
+  getProjectManifest: async (projectName: string) => {
     return await ipcRenderer.invoke('project:get-manifest', projectName);
   },
-  updateProjectManifest: async(projectName: string, manifest: any) => {
+  updateProjectManifest: async (projectName: string, manifest: any) => {
     return await ipcRenderer.invoke('project:update-manifest', projectName, manifest);
   },
-  selectFolder: async() => {
+  selectFolder: async () => {
     return await ipcRenderer.invoke('dialog:select-folder');
   },
-  createProject: async(projectInfo: { name: string; path: string }) => {
+  createProject: async (projectInfo: { name: string; path: string; manifest }) => {
     return await ipcRenderer.invoke('project:create', projectInfo);
   },
-  getDefaultProjectPath: async() => {
+  getDefaultProjectPath: async () => {
     return await ipcRenderer.invoke('get:default-project-path');
   },
   getAllItem: async () => {
     return await ipcRenderer.invoke('database:get-all');
   },
-  addItem: async (item) => {
+  addItem: async item => {
     return await ipcRenderer.invoke('database:add-item', item);
   },
-  updateItem: async (item) => {
+  updateItem: async item => {
     return await ipcRenderer.invoke('database:update-item', item);
   },
-  deleteItem: async (itemName) => {
+  deleteItem: async itemName => {
     return await ipcRenderer.invoke('database:delete-item', itemName);
   },
-  saveItemsOrder: async (items) => {
+  saveItemsOrder: async items => {
     return await ipcRenderer.invoke('database:save-order', items);
   },
   generateVideo: async (projectName, outputPath) => {
     return await ipcRenderer.invoke('project:generate-video', projectName, outputPath);
   },
-  showItemInFolder: async (path) =>{
-    return await ipcRenderer.invoke('dialog:show-item-in-folder',path);
+  showItemInFolder: async path => {
+    return await ipcRenderer.invoke('dialog:show-item-in-folder', path);
   },
-  getAudioPath: async (itemName) => {
+  getAudioPath: async itemName => {
     return await ipcRenderer.invoke('database:get-audio-path', itemName);
   },
-  getImagePath: async (itemName) => {
+  getImagePath: async itemName => {
     return await ipcRenderer.invoke('database:get-image-path', itemName);
   },
-  getFileBase64: async (filePath) => {
+  getFileBase64: async filePath => {
     return await ipcRenderer.invoke('file:get-base64', filePath);
   },
   setItemAudio: async (itemName, audioPath, isExample) => {
@@ -86,24 +86,36 @@ const api = {
   clearProjectCache: async (projectName: string) => {
     return await ipcRenderer.invoke('project:clear-cache', projectName);
   },
-  importDataByAI: async (data:string) => {
-    return await ipcRenderer.invoke('ai:import-data',data);
+  importDataByAI: async (data: string) => {
+    return await ipcRenderer.invoke('ai:import-data', data);
   },
-  buildExampleByAI: async (item:string,explanation:string) => {
-    return await ipcRenderer.invoke('ai:build-sentence',item,explanation);
-  }
-}
+  buildExampleByAI: async (item: string, explanation: string) => {
+    return await ipcRenderer.invoke('ai:build-sentence', item, explanation);
+  },
+  onFetchingProgress: async callback => {
+    ipcRenderer.on('progress:fetch', async (_, message) => {
+      await callback(message);
+    });
+  },
+  onGeneratingProgress: async callback => {
+    ipcRenderer.on('progress:generate', async (_, message) => {
+      await callback(message);
+    });
+  },
+  fetchAllData: async () => {
+    return await ipcRenderer.invoke('database:fetch-all');
+  },
+};
 
 if (process.contextIsolated) {
   try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('electron', electronAPI);
+    contextBridge.exposeInMainWorld('api', api);
   } catch (error) {
-    console.error(error)
+    console.error(error);
   }
 } else {
-  // @ts-ignore (define in dts)
-  window.electron = electronAPI
-  // @ts-ignore (define in dts)
-  window.api = api
+  window.electron = electronAPI;
+
+  window.api = api;
 }

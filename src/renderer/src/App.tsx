@@ -1,16 +1,11 @@
-import { JSX, useEffect, useState, useCallback } from "react"
-import { 
-  styled,
-  ThemeProvider,
-  createTheme,
-  Snackbar,
-  Alert
-} from '@mui/material'
-import CreateProjectDialog from './CreateProject'
-import ProjectListDialog from './ProjectList'
-import SettingsDialog from './Settings'
-import ItemEditor from './ItemEditor'
-import MainWindow from './MainWindow'
+import { JSX, useEffect, useState, useCallback } from 'react';
+import { styled, ThemeProvider, createTheme, Snackbar, Alert } from '@mui/material';
+import CreateProjectDialog from './CreateProject';
+import ProjectListDialog from './ProjectList';
+import SettingsDialog from './Settings';
+import ItemEditor from './ItemEditor';
+import MainWindow from './MainWindow';
+import ProjectManifestEditor from './ProjectManifestEditor';
 
 const GlobalStyles = styled('style')({
   '@global': {
@@ -19,22 +14,22 @@ const GlobalStyles = styled('style')({
       padding: 0,
       overflow: 'hidden',
       width: '100vw',
-      height: '100vh'
+      height: '100vh',
     },
     body: {
       margin: 0,
       padding: 0,
       overflow: 'hidden',
       width: '100vw',
-      height: '100vh'
+      height: '100vh',
     },
     '#root': {
       width: '100%',
       height: '100%',
       position: 'relative',
-      overflow: 'hidden'
-    }
-  }
+      overflow: 'hidden',
+    },
+  },
 });
 
 export const customTheme = createTheme({
@@ -65,7 +60,7 @@ export const customTheme = createTheme({
       fontWeight: 600,
       textAlign: 'center',
       color: '#fff',
-    }
+    },
   },
   components: {
     MuiButton: {
@@ -80,15 +75,17 @@ export const customTheme = createTheme({
 });
 
 function App(): JSX.Element {
-  const [backgroundUrl, setBackgroundUrl] = useState<string>('')
-  
+  const [backgroundUrl, setBackgroundUrl] = useState<string>('');
+
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [projectListDialogOpen, setProjectListDialogOpen] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
-  
+  const [manifestEditorOpen, setManifestEditorOpen] = useState(false);
+  const [manifestEditorProject, _setManifestEditorProject] = useState<string | null>(null);
+
   const [currentView, setCurrentView] = useState<'home' | 'editor'>('home');
   const [currentProject, setCurrentProject] = useState<string | null>(null);
-  
+
   const [alert, setAlert] = useState<{
     open: boolean;
     message: string;
@@ -96,51 +93,57 @@ function App(): JSX.Element {
   }>({
     open: false,
     message: '',
-    severity: 'info'
+    severity: 'info',
   });
-  
-  const showAlert = useCallback((message: string, severity: 'success' | 'error' | 'info' | 'warning') => {
-    setAlert({
-      open: true,
-      message,
-      severity
-    });
-  }, []);
-  
-  const openProject = useCallback(async (projectName: string) => {
-    try {
-      const result = await window.api.openProject(projectName);
-      
-      if (result.success) {
-        setCurrentProject(projectName);
-        setCurrentView('editor');
-        
-        localStorage.setItem('currentProject', projectName);
-        
-        showAlert(`项目 "${projectName}" 已打开`, 'success');
-      } else {
-        console.error('打开项目失败:', result.message);
-        showAlert(`打开项目失败: ${result.message || '未知错误'}`, 'error');
+
+  const showAlert = useCallback(
+    (message: string, severity: 'success' | 'error' | 'info' | 'warning') => {
+      setAlert({
+        open: true,
+        message,
+        severity,
+      });
+    },
+    []
+  );
+
+  const openProject = useCallback(
+    async (projectName: string) => {
+      try {
+        const result = await window.api.openProject(projectName);
+
+        if (result.success) {
+          setCurrentProject(projectName);
+          setCurrentView('editor');
+
+          localStorage.setItem('currentProject', projectName);
+
+          showAlert(`项目 "${projectName}" 已打开`, 'success');
+        } else {
+          console.error('打开项目失败:', result.message);
+          showAlert(`打开项目失败: ${result.message || '未知错误'}`, 'error');
+        }
+      } catch (error) {
+        console.error('打开项目时发生错误:', error);
+        showAlert('打开项目时发生错误', 'error');
       }
-    } catch (error) {
-      console.error('打开项目时发生错误:', error);
-      showAlert('打开项目时发生错误', 'error');
-    }
-  }, [showAlert]);
-  
+    },
+    [showAlert]
+  );
+
   useEffect(() => {
     const fetchBingWallpaper = async () => {
       try {
-        const result = await window.api.fetchBingWallpaper()
+        const result = await window.api.fetchBingWallpaper();
         if (result.success && result.imageUrl) {
-          setBackgroundUrl(result.imageUrl)
+          setBackgroundUrl(result.imageUrl);
         } else {
-          console.error('获取壁纸失败:', result.error)
+          console.error('获取壁纸失败:', result.error);
         }
       } catch (error) {
-        console.error('获取壁纸失败:', error)
+        console.error('获取壁纸失败:', error);
       }
-    }
+    };
 
     fetchBingWallpaper();
   }, []);
@@ -151,57 +154,87 @@ function App(): JSX.Element {
     }
   }, [openProject]);
 
-  const handleProjectCreated = useCallback((projectName: string) => {
-    setCreateDialogOpen(false);
-    openProject(projectName);
-  }, [openProject]);
+  const handleProjectCreated = useCallback(
+    (projectName: string) => {
+      setCreateDialogOpen(false);
+      openProject(projectName);
+    },
+    [openProject]
+  );
 
-  const handleProjectSelected = useCallback((projectName: string) => {
-    setProjectListDialogOpen(false);
-    openProject(projectName);
-  }, [openProject]);
+  const handleProjectSelected = useCallback(
+    (projectName: string) => {
+      setProjectListDialogOpen(false);
+      openProject(projectName);
+    },
+    [openProject]
+  );
 
   const handleBackToHome = useCallback(() => {
     setCurrentView('home');
     setCurrentProject(null);
-    
+
     localStorage.removeItem('currentProject');
   }, []);
+
+  const handleSaveManifest = useCallback(
+    async (manifest: any) => {
+      try {
+        if (!manifestEditorProject) return;
+
+        const result = await window.api.updateProjectManifest(manifestEditorProject, manifest);
+
+        if (result.success) {
+          showAlert(`项目 "${manifestEditorProject}" 信息已成功更新`, 'success');
+        } else {
+          showAlert(result.message || `更新项目信息失败`, 'error');
+        }
+      } catch (error) {
+        console.error('更新项目信息失败:', error);
+        showAlert('更新项目信息时发生错误', 'error');
+      } finally {
+        setManifestEditorOpen(false);
+      }
+    },
+    [manifestEditorProject, showAlert]
+  );
 
   return (
     <ThemeProvider theme={customTheme}>
       <GlobalStyles />
-      
+
       {currentView === 'home' ? (
-        <MainWindow 
+        <MainWindow
           backgroundUrl={backgroundUrl}
           onCreateProject={() => setCreateDialogOpen(true)}
           onOpenProject={() => setProjectListDialogOpen(true)}
           onOpenSettings={() => setSettingsDialogOpen(true)}
         />
       ) : (
-        <ItemEditor 
-          onBack={handleBackToHome} 
-          projectName={currentProject || '未知项目'} 
-        />
+        <ItemEditor onBack={handleBackToHome} projectName={currentProject || '未知项目'} />
       )}
 
-      <CreateProjectDialog 
-        open={createDialogOpen} 
-        onClose={() => setCreateDialogOpen(false)} 
+      <CreateProjectDialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
         onProjectCreated={handleProjectCreated}
       />
-      
+
       <ProjectListDialog
         open={projectListDialogOpen}
         onClose={() => setProjectListDialogOpen(false)}
         onSelectProject={handleProjectSelected}
       />
-      
-      <SettingsDialog
-        open={settingsDialogOpen}
-        onClose={() => setSettingsDialogOpen(false)}
+
+      <SettingsDialog open={settingsDialogOpen} onClose={() => setSettingsDialogOpen(false)} />
+
+      <ProjectManifestEditor
+        open={manifestEditorOpen}
+        onClose={() => setManifestEditorOpen(false)}
+        projectName={manifestEditorProject}
+        onSave={handleSaveManifest}
       />
+
       <Snackbar
         open={alert.open}
         autoHideDuration={6000}
@@ -213,7 +246,7 @@ function App(): JSX.Element {
         </Alert>
       </Snackbar>
     </ThemeProvider>
-  )
+  );
 }
 
-export default App
+export default App;

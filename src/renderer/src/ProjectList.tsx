@@ -19,7 +19,7 @@ import {
   Tooltip,
   Divider,
   Snackbar,
-  Alert
+  Alert,
 } from '@mui/material';
 import { customTheme } from './App';
 import CloseIcon from '@mui/icons-material/Close';
@@ -50,7 +50,11 @@ interface ProjectListDialogProps {
   onSelectProject: (projectName: string) => void;
 }
 
-export default function ProjectListDialog({ open, onClose, onSelectProject }: ProjectListDialogProps) {
+export default function ProjectListDialog({
+  open,
+  onClose,
+  onSelectProject,
+}: ProjectListDialogProps) {
   const [projects, setProjects] = useState<ProjectInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -63,7 +67,7 @@ export default function ProjectListDialog({ open, onClose, onSelectProject }: Pr
   }>({
     open: false,
     message: '',
-    severity: 'success'
+    severity: 'success',
   });
 
   const loadProjects = async () => {
@@ -76,7 +80,7 @@ export default function ProjectListDialog({ open, onClose, onSelectProject }: Pr
       setAlert({
         open: true,
         message: '获取项目列表失败',
-        severity: 'error'
+        severity: 'error',
       });
     } finally {
       setLoading(false);
@@ -97,19 +101,19 @@ export default function ProjectListDialog({ open, onClose, onSelectProject }: Pr
   const handleDeleteProject = async (projectName: string) => {
     try {
       const result = await window.api.deleteProject(projectName);
-      
+
       if (result.success) {
         setAlert({
           open: true,
           message: `项目 "${projectName}" 已成功删除`,
-          severity: 'success'
+          severity: 'success',
         });
         loadProjects();
       } else {
         setAlert({
           open: true,
           message: result.message || `删除项目失败`,
-          severity: 'error'
+          severity: 'error',
         });
       }
     } catch (error) {
@@ -117,7 +121,7 @@ export default function ProjectListDialog({ open, onClose, onSelectProject }: Pr
       setAlert({
         open: true,
         message: `删除项目时发生错误`,
-        severity: 'error'
+        severity: 'error',
       });
     } finally {
       setConfirmDelete(null);
@@ -129,18 +133,17 @@ export default function ProjectListDialog({ open, onClose, onSelectProject }: Pr
     setEditDialogOpen(true);
   };
 
-
   const handleSaveManifest = async (manifest: ProjectManifest) => {
     if (!editProjectName) return;
-    
+
     try {
       const result = await window.api.updateProjectManifest(editProjectName, manifest);
-      
+
       if (result.success) {
         setAlert({
           open: true,
           message: `项目 "${editProjectName}" 信息已成功更新`,
-          severity: 'success'
+          severity: 'success',
         });
         setEditDialogOpen(false);
         loadProjects();
@@ -148,7 +151,7 @@ export default function ProjectListDialog({ open, onClose, onSelectProject }: Pr
         setAlert({
           open: true,
           message: result.message || `更新项目信息失败`,
-          severity: 'error'
+          severity: 'error',
         });
       }
     } catch (error) {
@@ -156,7 +159,7 @@ export default function ProjectListDialog({ open, onClose, onSelectProject }: Pr
       setAlert({
         open: true,
         message: `更新项目信息时发生错误`,
-        severity: 'error'
+        severity: 'error',
       });
     }
   };
@@ -177,10 +180,10 @@ export default function ProjectListDialog({ open, onClose, onSelectProject }: Pr
         maxWidth="md"
         fullWidth
         PaperProps={{
-          sx: { 
+          sx: {
             borderRadius: 2,
-            minHeight: '50vh'
-          }
+            minHeight: '50vh',
+          },
         }}
       >
         <DialogTitle>
@@ -193,12 +196,7 @@ export default function ProjectListDialog({ open, onClose, onSelectProject }: Pr
         </DialogTitle>
         <DialogContent dividers>
           {loading ? (
-            <Box 
-              display="flex" 
-              justifyContent="center" 
-              alignItems="center" 
-              height="300px"
-            >
+            <Box display="flex" justifyContent="center" alignItems="center" height="300px">
               <CircularProgress />
             </Box>
           ) : (
@@ -210,19 +208,24 @@ export default function ProjectListDialog({ open, onClose, onSelectProject }: Pr
                   </IconButton>
                 </Tooltip>
               </Box>
-              
+
               {projects.length === 0 ? (
-                <Box 
-                  display="flex" 
+                <Box
+                  display="flex"
                   flexDirection="column"
-                  justifyContent="center" 
-                  alignItems="center" 
+                  justifyContent="center"
+                  alignItems="center"
                   height="300px"
                 >
                   <Typography variant="h6" color="text.secondary" gutterBottom>
                     没有找到任何项目
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" align="center" sx={{ maxWidth: 400 }}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    align="center"
+                    sx={{ maxWidth: 400 }}
+                  >
                     您可以创建一个新项目或导入现有项目
                   </Typography>
                 </Box>
@@ -237,9 +240,9 @@ export default function ProjectListDialog({ open, onClose, onSelectProject }: Pr
                         secondaryAction={
                           <Box>
                             <Tooltip title="编辑项目信息">
-                              <IconButton 
-                                edge="end" 
-                                onClick={(e) => {
+                              <IconButton
+                                edge="end"
+                                onClick={e => {
                                   e.stopPropagation();
                                   handleOpenEditDialog(project.name);
                                 }}
@@ -249,9 +252,9 @@ export default function ProjectListDialog({ open, onClose, onSelectProject }: Pr
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="删除项目">
-                              <IconButton 
-                                edge="end" 
-                                onClick={(e) => {
+                              <IconButton
+                                edge="end"
+                                onClick={e => {
                                   e.stopPropagation();
                                   setConfirmDelete(project.name);
                                 }}
@@ -281,7 +284,9 @@ export default function ProjectListDialog({ open, onClose, onSelectProject }: Pr
                                 variant="body2"
                                 color="text.primary"
                               >
-                                <span style={{ fontSize: '0.8rem', color: 'gray' }}>{project.path}</span>
+                                <span style={{ fontSize: '0.8rem', color: 'gray' }}>
+                                  {project.path}
+                                </span>
                               </Typography>
                               <Typography
                                 sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}
@@ -311,9 +316,7 @@ export default function ProjectListDialog({ open, onClose, onSelectProject }: Pr
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">
-          确认删除项目
-        </DialogTitle>
+        <DialogTitle id="alert-dialog-title">确认删除项目</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
             您确定要删除项目 "{confirmDelete}" 吗？此操作不可逆，项目数据将被永久删除。
@@ -323,9 +326,9 @@ export default function ProjectListDialog({ open, onClose, onSelectProject }: Pr
           <Button onClick={() => setConfirmDelete(null)} color="primary">
             取消
           </Button>
-          <Button 
-            onClick={() => confirmDelete && handleDeleteProject(confirmDelete)} 
-            color="error" 
+          <Button
+            onClick={() => confirmDelete && handleDeleteProject(confirmDelete)}
+            color="error"
             variant="contained"
             autoFocus
           >

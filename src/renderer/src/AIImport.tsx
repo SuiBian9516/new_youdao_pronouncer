@@ -10,7 +10,7 @@ import {
   Box,
   IconButton,
   CircularProgress,
-  Alert
+  Alert,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
@@ -105,7 +105,7 @@ export default function AIImport({ open, onClose, onImportSuccess }: AIImportPro
           fullWidth
           placeholder="在此粘贴需要导入的文本..."
           value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
+          onChange={e => setInputText(e.target.value)}
           disabled={loading}
         />
 
@@ -122,11 +122,7 @@ export default function AIImport({ open, onClose, onImportSuccess }: AIImportPro
         )}
       </DialogContent>
       <DialogActions sx={{ p: 2, justifyContent: 'space-between' }}>
-        <Button
-          onClick={handleClose}
-          color="inherit"
-          disabled={loading}
-        >
+        <Button onClick={handleClose} color="inherit" disabled={loading}>
           取消
         </Button>
         <Button

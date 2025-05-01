@@ -13,7 +13,7 @@ import {
   Snackbar,
   Alert,
   AlertColor,
-  ThemeProvider
+  ThemeProvider,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { customTheme } from './App';
@@ -40,21 +40,21 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   const [config, setConfig] = useState<Config>({
     youdao: {
       appKey: '',
-      key: ''
+      key: '',
     },
     pixabay: {
-      key: ''
+      key: '',
     },
     deepseek: {
-      apiKey: ''
-    }
+      apiKey: '',
+    },
   });
 
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState({
     open: false,
     message: '',
-    severity: 'success' as AlertColor
+    severity: 'success' as AlertColor,
   });
 
   const fullScreen = useMediaQuery(customTheme.breakpoints.down('sm'));
@@ -71,7 +71,7 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
           setAlert({
             open: true,
             message: '获取配置失败',
-            severity: 'error'
+            severity: 'error',
           });
         } finally {
           setLoading(false);
@@ -82,13 +82,17 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     }
   }, [open]);
 
-  const handleChange = (section: 'youdao' | 'pixabay' | 'deepseek', field: string, value: string) => {
+  const handleChange = (
+    section: 'youdao' | 'pixabay' | 'deepseek',
+    field: string,
+    value: string
+  ) => {
     setConfig(prevConfig => ({
       ...prevConfig,
       [section]: {
         ...prevConfig[section],
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
   };
 
@@ -98,7 +102,7 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
       setAlert({
         open: true,
         message: '设置已保存',
-        severity: 'success'
+        severity: 'success',
       });
       onClose();
     } catch (error) {
@@ -106,7 +110,7 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
       setAlert({
         open: true,
         message: '保存配置失败',
-        severity: 'error'
+        severity: 'error',
       });
     }
   };
@@ -117,13 +121,7 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
 
   return (
     <ThemeProvider theme={customTheme}>
-      <Dialog
-        open={open}
-        onClose={onClose}
-        fullScreen={fullScreen}
-        maxWidth="sm"
-        fullWidth
-      >
+      <Dialog open={open} onClose={onClose} fullScreen={fullScreen} maxWidth="sm" fullWidth>
         <DialogTitle>
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Typography variant="h6">设置</Typography>
@@ -148,7 +146,7 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                   margin="dense"
                   label="应用ID"
                   value={config.youdao.appKey}
-                  onChange={(e) => handleChange('youdao', 'appKey', e.target.value)}
+                  onChange={e => handleChange('youdao', 'appKey', e.target.value)}
                   variant="outlined"
                   sx={{ mb: 2 }}
                 />
@@ -157,7 +155,7 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                   margin="dense"
                   label="应用密钥"
                   value={config.youdao.key}
-                  onChange={(e) => handleChange('youdao', 'key', e.target.value)}
+                  onChange={e => handleChange('youdao', 'key', e.target.value)}
                   variant="outlined"
                   type="password"
                 />
@@ -186,7 +184,7 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                   margin="dense"
                   label="API密钥"
                   value={config.pixabay.key}
-                  onChange={(e) => handleChange('pixabay', 'key', e.target.value)}
+                  onChange={e => handleChange('pixabay', 'key', e.target.value)}
                   variant="outlined"
                 />
                 <Typography variant="body2" color="text.secondary" mt={1}>
@@ -198,7 +196,10 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                   size="small"
                   sx={{ mt: 1 }}
                   onClick={() => {
-                    window.electron.ipcRenderer.send('open-external', 'https://pixabay.com/api/docs/');
+                    window.electron.ipcRenderer.send(
+                      'open-external',
+                      'https://pixabay.com/api/docs/'
+                    );
                   }}
                 >
                   前往Pixabay开发者页面
@@ -214,7 +215,7 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                   margin="dense"
                   label="API密钥"
                   value={config.deepseek.apiKey}
-                  onChange={(e) => handleChange('deepseek', 'apiKey', e.target.value)}
+                  onChange={e => handleChange('deepseek', 'apiKey', e.target.value)}
                   variant="outlined"
                   type="password"
                 />
@@ -227,7 +228,10 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                   size="small"
                   sx={{ mt: 1 }}
                   onClick={() => {
-                    window.electron.ipcRenderer.send('open-external', 'https://platform.deepseek.com/');
+                    window.electron.ipcRenderer.send(
+                      'open-external',
+                      'https://platform.deepseek.com/'
+                    );
                   }}
                 >
                   前往DeepSeek官网

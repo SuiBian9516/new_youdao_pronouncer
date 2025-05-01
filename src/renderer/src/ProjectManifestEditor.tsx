@@ -12,7 +12,7 @@ import {
   CircularProgress,
   ThemeProvider,
   InputLabel,
-  FormControl
+  FormControl,
 } from '@mui/material';
 import { customTheme } from './App';
 import CloseIcon from '@mui/icons-material/Close';
@@ -38,11 +38,11 @@ export default function ProjectManifestEditor({
   onClose,
   projectName,
   initialLoading = false,
-  onSave
+  onSave,
 }: ProjectManifestEditorProps) {
   const [projectManifest, setProjectManifest] = useState<ProjectManifest | null>(null);
   const [loading, setLoading] = useState(initialLoading);
-  
+
   const backgroundColorRef = useRef<HTMLInputElement>(null);
   const textColor1Ref = useRef<HTMLInputElement>(null);
   const textColor2Ref = useRef<HTMLInputElement>(null);
@@ -57,7 +57,7 @@ export default function ProjectManifestEditor({
     try {
       setLoading(true);
       const result = await window.api.getProjectManifest(projectName);
-      
+
       if (result.success) {
         setProjectManifest(result.manifest ?? null);
       }
@@ -70,31 +70,31 @@ export default function ProjectManifestEditor({
 
   const handleInputChange = (field: keyof ProjectManifest, value: string) => {
     if (!projectManifest) return;
-    
+
     setProjectManifest({
       ...projectManifest,
-      [field]: value
+      [field]: value,
     });
   };
 
   const collectColorValues = useCallback(() => {
     if (!projectManifest) return null;
-    
+
     const backgroundColor = backgroundColorRef.current?.value || projectManifest.backgroundColor;
     const textColor1 = textColor1Ref.current?.value || projectManifest.characterColor[0];
     const textColor2 = textColor2Ref.current?.value || projectManifest.characterColor[1];
-    
+
     return {
       ...projectManifest,
       backgroundColor,
-      characterColor: [textColor1, textColor2] as [string, string]
+      characterColor: [textColor1, textColor2] as [string, string],
     };
   }, [projectManifest]);
 
   const handleSave = async () => {
     const updatedManifest = collectColorValues();
     if (!updatedManifest) return;
-    
+
     try {
       setLoading(true);
       await onSave(updatedManifest);
@@ -105,12 +105,7 @@ export default function ProjectManifestEditor({
 
   return (
     <ThemeProvider theme={customTheme}>
-      <Dialog
-        open={open}
-        onClose={onClose}
-        maxWidth="sm"
-        fullWidth
-      >
+      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
         <DialogTitle>
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Typography variant="h6">编辑项目信息</Typography>
@@ -140,7 +135,7 @@ export default function ProjectManifestEditor({
                 <TextField
                   label="项目标题"
                   value={projectManifest.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  onChange={e => handleInputChange('title', e.target.value)}
                   fullWidth
                   variant="outlined"
                   margin="normal"
@@ -151,7 +146,7 @@ export default function ProjectManifestEditor({
                 <TextField
                   label="项目副标题"
                   value={projectManifest.subtitle}
-                  onChange={(e) => handleInputChange('subtitle', e.target.value)}
+                  onChange={e => handleInputChange('subtitle', e.target.value)}
                   fullWidth
                   variant="outlined"
                   margin="normal"
@@ -169,17 +164,17 @@ export default function ProjectManifestEditor({
                       type="color"
                       id="background-color"
                       defaultValue={projectManifest.backgroundColor}
-                      style={{ 
-                        width: '50px', 
+                      style={{
+                        width: '50px',
                         height: '36px',
                         border: 'none',
                         borderRadius: '4px',
-                        padding: '2px'
+                        padding: '2px',
                       }}
                     />
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary" 
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
                       sx={{ ml: 2, alignSelf: 'center' }}
                     >
                       {backgroundColorRef.current?.value || projectManifest.backgroundColor}
@@ -202,17 +197,17 @@ export default function ProjectManifestEditor({
                         type="color"
                         id="text-color-1"
                         defaultValue={projectManifest.characterColor[0]}
-                        style={{ 
-                          width: '50px', 
+                        style={{
+                          width: '50px',
                           height: '36px',
                           border: 'none',
                           borderRadius: '4px',
-                          padding: '2px'
+                          padding: '2px',
                         }}
                       />
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary" 
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
                         sx={{ ml: 1, alignSelf: 'center' }}
                       >
                         默认文字颜色
@@ -231,17 +226,17 @@ export default function ProjectManifestEditor({
                         type="color"
                         id="text-color-2"
                         defaultValue={projectManifest.characterColor[1]}
-                        style={{ 
-                          width: '50px', 
+                        style={{
+                          width: '50px',
                           height: '36px',
                           border: 'none',
                           borderRadius: '4px',
-                          padding: '2px'
+                          padding: '2px',
                         }}
                       />
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary" 
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
                         sx={{ ml: 1, alignSelf: 'center' }}
                       >
                         高亮文字颜色

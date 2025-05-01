@@ -14,10 +14,6 @@ asarUnpack:
   - node_modules/@ffmpeg-installer/ffmpeg/**
   - node_modules/@ffprobe-installer/ffprobe/**
 
-extraResources:
-  - from: "resources/font.ttf"
-    to: "font.ttf"
-
 win:
   executableName: youdao_pronouncer
   icon: app.ico
