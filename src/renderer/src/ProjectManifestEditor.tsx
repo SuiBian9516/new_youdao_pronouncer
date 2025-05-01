@@ -181,7 +181,7 @@ export default function ProjectManifestEditor({
                     </Typography>
                   </Box>
                   <Typography variant="caption" color="text.secondary" sx={{ mt: 1, ml: 1 }}>
-                    视频背景颜色 (点击色块选择)
+                    视频背景颜色
                   </Typography>
                 </FormControl>
               </Box>
@@ -244,11 +244,6 @@ export default function ProjectManifestEditor({
                     </Box>
                   </FormControl>
                 </Box>
-              </Box>
-              <Box sx={{ width: '100%', mt: 2 }}>
-                <Typography variant="body2" color="text.secondary">
-                  注: 颜色更改将应用于新生成的视频。
-                </Typography>
               </Box>
             </Box>
           ) : null}

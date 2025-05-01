@@ -1,34 +1,16 @@
-# new_youdao_pronouncer
+# YoudaoPronouncer
 
-An Electron application with React and TypeScript
+A video-maker software using learn English
 
-## Recommended IDE Setup
+## What YoudaoPronouncer to solve
+This software can help teachers and students create English word pronouncing videos in a very short time with AI data processing abilities and sentences writing functions.
 
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+With this weight-light software, you can avoid doing repeating things like fetching audios from network and never worry about how to find a proper image.
 
-## Project Setup
+Such boring work can be automatically processed by YoudaoPronouncer.
 
-### Install
+## How to use
+`First`, just download setup executable file in **release** page in github.
 
-```bash
-$ npm install
-```
-
-### Development
-
-```bash
-$ npm run dev
-```
-
-### Build
-
-```bash
-# For windows
-$ npm run build:win
-
-# For macOS
-$ npm run build:mac
-
-# For Linux
-$ npm run build:linux
-```
+`Second`, install the programme.
+`Finally`, use it with joy.

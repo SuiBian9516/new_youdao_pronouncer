@@ -67,8 +67,29 @@ const MainWindow = ({
         position: 'fixed',
         top: 0,
         left: 0,
+        backdropFilter: 'blur(5px)',
       }}
     >
+      {}
+      {backgroundUrl && (
+        <Typography
+          variant="caption"
+          sx={{
+            position: 'absolute',
+            top: 10,
+            left: 10,
+            color: 'white',
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            padding: '2px 8px',
+            borderRadius: '4px',
+            backdropFilter: 'blur(10px)',
+            fontSize: '0.7rem',
+          }}
+        >
+          图片来自 bing.com
+        </Typography>
+      )}
+
       <Box
         sx={{
           display: 'flex',

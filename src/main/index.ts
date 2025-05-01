@@ -4,7 +4,7 @@ import { optimizer, is } from '@electron-toolkit/utils';
 import Logger from './logger';
 import axios from 'axios';
 import Pronouncer from './pronouncer';
-import { PATH_PROJECT } from './constants';
+import { PATH_PROJECT, VERSION, AUTHORS } from './constants';
 import * as fs from 'fs';
 import Deepseek from './deepseek';
 
@@ -988,6 +988,13 @@ ipcMain.handle('database:fetch-all', async _ => {
       message: `在拉取时出现了问题：${e}`,
     };
   }
+});
+
+ipcMain.handle('get-metadata', async _ => {
+  return {
+    version: VERSION.join('.'),
+    authors: AUTHORS,
+  };
 });
 
 app.whenReady().then(async () => {

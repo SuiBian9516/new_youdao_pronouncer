@@ -173,6 +173,7 @@ interface Window {
     fetchAllData: () => Promise<{ success: boolean; message: string }>;
     onFetchingProgress: (callback: (message: string) => Promise<void>) => Promise<void>;
     onGeneratingProgress: (callback: (message: string) => Promise<void>) => Promise<void>;
+    getMetadata: () => Promise<{ version: string; authors: string[] }>;
   };
 }
 

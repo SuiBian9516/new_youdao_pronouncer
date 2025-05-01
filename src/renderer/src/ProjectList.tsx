@@ -226,7 +226,7 @@ export default function ProjectListDialog({
                     align="center"
                     sx={{ maxWidth: 400 }}
                   >
-                    您可以创建一个新项目或导入现有项目
+                    您可以创建一个新项目
                   </Typography>
                 </Box>
               ) : (

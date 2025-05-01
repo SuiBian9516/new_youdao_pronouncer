@@ -92,9 +92,6 @@ export default function AIImport({ open, onClose, onImportSuccess }: AIImportPro
           <Typography variant="body2" color="text.secondary" gutterBottom>
             请输入包含单词、短语或句子的文本，AI将帮助您提取并格式化数据。
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            例如: 输入一段包含多个单词和释义的文本，AI将自动识别并导入。
-          </Typography>
         </Box>
 
         <TextField

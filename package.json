@@ -1,22 +1,26 @@
 {
   "name": "new_youdao_pronouncer",
-  "version": "1.0.0",
-  "description": "An Electron application with React and TypeScript",
+  "version": "0.1.0",
+  "description": "A video-maker software using learn English",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": "SuiBian9516 <m1311826090@outlook.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SuiBian9516/new_youdao_pronouncer.git"
+  },
+  "contributors": [
+    "AhgNum <x_ahgmum_x@foxmail.com>"
+  ],
   "scripts": {
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
-    "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
+    "build": "npm run typecheck && electron-vite build",
     "build:win": "npm run build && electron-builder --win",
-    "build:mac": "electron-vite build && electron-builder --mac",
-    "build:linux": "electron-vite build && electron-builder --linux",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,html,css}\"",
     "format:src": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,html,css}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,html,css}\""

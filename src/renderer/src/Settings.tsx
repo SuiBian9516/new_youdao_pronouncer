@@ -14,9 +14,12 @@ import {
   Alert,
   AlertColor,
   ThemeProvider,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { customTheme } from './App';
+import iconPath from './assets/icon.png';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -33,6 +36,36 @@ interface Config {
   };
   deepseek: {
     apiKey: string;
+  };
+}
+
+interface TabPanelProps {
+  children: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`settings-tabpanel-${index}`}
+      aria-labelledby={`settings-tab-${index}`}
+      style={{ width: '100%' }}
+      {...other}
+    >
+      {value === index && <Box sx={{ py: 2, width: '100%' }}>{children}</Box>}
+    </div>
+  );
+}
+
+function a11yProps(index: number) {
+  return {
+    id: `settings-tab-${index}`,
+    'aria-controls': `settings-tabpanel-${index}`,
   };
 }
 
@@ -56,6 +89,9 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     message: '',
     severity: 'success' as AlertColor,
   });
+  const [tabValue, setTabValue] = useState(0);
+  const [version, setVersion] = useState<string>('');
+  const [authors, setAuthors] = useState<string[]>([]);
 
   const fullScreen = useMediaQuery(customTheme.breakpoints.down('sm'));
 
@@ -66,6 +102,10 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
           setLoading(true);
           const result = await window.api.getConfig();
           setConfig(result);
+
+          const versionInfo = await window.api.getMetadata();
+          setVersion(versionInfo.version);
+          setAuthors(versionInfo.authors);
         } catch (error) {
           console.error('获取配置失败:', error);
           setAlert({
@@ -119,6 +159,10 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     setAlert({ ...alert, open: false });
   };
 
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
+
   return (
     <ThemeProvider theme={customTheme}>
       <Dialog open={open} onClose={onClose} fullScreen={fullScreen} maxWidth="sm" fullWidth>
@@ -130,123 +174,237 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
             </IconButton>
           </Box>
         </DialogTitle>
-        <DialogContent dividers>
+
+        <Box sx={{ width: '100%', borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs
+            value={tabValue}
+            onChange={handleTabChange}
+            aria-label="设置选项卡"
+            variant="fullWidth"
+            centered
+          >
+            <Tab label="API配置" {...a11yProps(0)} />
+            <Tab label="关于" {...a11yProps(1)} />
+          </Tabs>
+        </Box>
+
+        <DialogContent dividers sx={{ p: 0 }}>
           {loading ? (
             <Box textAlign="center" py={3}>
               <Typography>加载中...</Typography>
             </Box>
           ) : (
-            <>
-              <Box mb={3}>
-                <Typography variant="subtitle1" gutterBottom fontWeight="bold">
-                  有道翻译API设置
-                </Typography>
-                <TextField
-                  fullWidth
-                  margin="dense"
-                  label="应用ID"
-                  value={config.youdao.appKey}
-                  onChange={e => handleChange('youdao', 'appKey', e.target.value)}
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-                <TextField
-                  fullWidth
-                  margin="dense"
-                  label="应用密钥"
-                  value={config.youdao.key}
-                  onChange={e => handleChange('youdao', 'key', e.target.value)}
-                  variant="outlined"
-                  type="password"
-                />
-                <Typography variant="body2" color="text.secondary" mt={1}>
-                  用于获取在线音频文件
-                </Typography>
-                <Button
-                  variant="text"
-                  color="primary"
-                  size="small"
-                  sx={{ mt: 1 }}
-                  onClick={() => {
-                    window.electron.ipcRenderer.send('open-external', 'https://ai.youdao.com/');
-                  }}
-                >
-                  前往有道智云
-                </Button>
-              </Box>
+            <Box sx={{ width: '100%' }}>
+              <TabPanel value={tabValue} index={0}>
+                <Box p={2}>
+                  <Box mb={3}>
+                    <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+                      有道翻译API设置
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      margin="dense"
+                      label="应用ID"
+                      value={config.youdao.appKey}
+                      onChange={e => handleChange('youdao', 'appKey', e.target.value)}
+                      variant="outlined"
+                      sx={{ mb: 2 }}
+                    />
+                    <TextField
+                      fullWidth
+                      margin="dense"
+                      label="应用密钥"
+                      value={config.youdao.key}
+                      onChange={e => handleChange('youdao', 'key', e.target.value)}
+                      variant="outlined"
+                      type="password"
+                    />
+                    <Typography variant="body2" color="text.secondary" mt={1}>
+                      用于获取在线音频文件
+                    </Typography>
+                    <Button
+                      variant="text"
+                      color="primary"
+                      size="small"
+                      sx={{ mt: 1 }}
+                      onClick={() => {
+                        window.electron.ipcRenderer.send('open-external', 'https://ai.youdao.com/');
+                      }}
+                    >
+                      前往有道智云
+                    </Button>
+                  </Box>
 
-              <Box mt={4} mb={3}>
-                <Typography variant="subtitle1" gutterBottom fontWeight="bold">
-                  Pixabay API设置
-                </Typography>
-                <TextField
-                  fullWidth
-                  margin="dense"
-                  label="API密钥"
-                  value={config.pixabay.key}
-                  onChange={e => handleChange('pixabay', 'key', e.target.value)}
-                  variant="outlined"
-                />
-                <Typography variant="body2" color="text.secondary" mt={1}>
-                  用于获取在线的图片
-                </Typography>
-                <Button
-                  variant="text"
-                  color="primary"
-                  size="small"
-                  sx={{ mt: 1 }}
-                  onClick={() => {
-                    window.electron.ipcRenderer.send(
-                      'open-external',
-                      'https://pixabay.com/api/docs/'
-                    );
-                  }}
-                >
-                  前往Pixabay开发者页面
-                </Button>
-              </Box>
+                  <Box mt={4} mb={3}>
+                    <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+                      Pixabay API设置
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      margin="dense"
+                      label="API密钥"
+                      value={config.pixabay.key}
+                      onChange={e => handleChange('pixabay', 'key', e.target.value)}
+                      variant="outlined"
+                    />
+                    <Typography variant="body2" color="text.secondary" mt={1}>
+                      用于获取在线的图片
+                    </Typography>
+                    <Button
+                      variant="text"
+                      color="primary"
+                      size="small"
+                      sx={{ mt: 1 }}
+                      onClick={() => {
+                        window.electron.ipcRenderer.send(
+                          'open-external',
+                          'https://pixabay.com/api/docs/'
+                        );
+                      }}
+                    >
+                      前往Pixabay开发者页面
+                    </Button>
+                  </Box>
 
-              <Box mt={4}>
-                <Typography variant="subtitle1" gutterBottom fontWeight="bold">
-                  DeepSeek API设置
-                </Typography>
-                <TextField
-                  fullWidth
-                  margin="dense"
-                  label="API密钥"
-                  value={config.deepseek.apiKey}
-                  onChange={e => handleChange('deepseek', 'apiKey', e.target.value)}
-                  variant="outlined"
-                  type="password"
-                />
-                <Typography variant="body2" color="text.secondary" mt={1}>
-                  用于AI辅助使用软件
-                </Typography>
-                <Button
-                  variant="text"
-                  color="primary"
-                  size="small"
-                  sx={{ mt: 1 }}
-                  onClick={() => {
-                    window.electron.ipcRenderer.send(
-                      'open-external',
-                      'https://platform.deepseek.com/'
-                    );
+                  <Box mt={4}>
+                    <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+                      DeepSeek API设置
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      margin="dense"
+                      label="API密钥"
+                      value={config.deepseek.apiKey}
+                      onChange={e => handleChange('deepseek', 'apiKey', e.target.value)}
+                      variant="outlined"
+                      type="password"
+                    />
+                    <Typography variant="body2" color="text.secondary" mt={1}>
+                      用于AI辅助使用软件
+                    </Typography>
+                    <Button
+                      variant="text"
+                      color="primary"
+                      size="small"
+                      sx={{ mt: 1 }}
+                      onClick={() => {
+                        window.electron.ipcRenderer.send(
+                          'open-external',
+                          'https://platform.deepseek.com/'
+                        );
+                      }}
+                    >
+                      前往DeepSeek官网
+                    </Button>
+                  </Box>
+                </Box>
+              </TabPanel>
+
+              <TabPanel value={tabValue} index={1}>
+                <Box
+                  display="flex"
+                  flexDirection="column"
+                  alignItems="center"
+                  p={2}
+                  sx={{
+                    width: '100%',
+                    maxWidth: '100%',
+                    overflowX: 'hidden',
+                    boxSizing: 'border-box',
                   }}
                 >
-                  前往DeepSeek官网
-                </Button>
-              </Box>
-            </>
+                  <Box
+                    component="img"
+                    src={iconPath}
+                    alt="YoudaoPronouncer"
+                    sx={{
+                      height: 120,
+                      width: 120,
+                      mb: 3,
+                    }}
+                  />
+                  <Typography
+                    variant="h5"
+                    gutterBottom
+                    fontWeight="bold"
+                    textAlign="center"
+                    sx={{ wordBreak: 'break-word', maxWidth: '100%' }}
+                  >
+                    YoudaoPronouncer
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    gutterBottom
+                    textAlign="center"
+                    sx={{ wordBreak: 'break-word', maxWidth: '100%' }}
+                  >
+                    版本: {version}
+                  </Typography>
+                  <Typography
+                    variant="subtitle2"
+                    gutterBottom
+                    mt={3}
+                    textAlign="center"
+                    sx={{ wordBreak: 'break-word', maxWidth: '100%' }}
+                  >
+                    开发者
+                  </Typography>
+                  <Box
+                    mt={1}
+                    sx={{
+                      width: '100%',
+                      maxWidth: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    {authors.map((author, index) => (
+                      <Typography
+                        key={index}
+                        variant="body2"
+                        textAlign="center"
+                        sx={{
+                          wordBreak: 'break-word',
+                          maxWidth: '100%',
+                          overflowWrap: 'break-word',
+                        }}
+                      >
+                        {author}
+                      </Typography>
+                    ))}
+                  </Box>
+
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    mt={4}
+                    textAlign="center"
+                    sx={{ wordBreak: 'break-word', maxWidth: '100%' }}
+                  >
+                    一款辅助英语发音学习的工具
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    mt={1}
+                    textAlign="center"
+                    sx={{ wordBreak: 'break-word', maxWidth: '100%' }}
+                  ></Typography>
+                </Box>
+              </TabPanel>
+            </Box>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} color="inherit">
-            取消
+            {tabValue === 0 ? '取消' : '关闭'}
           </Button>
-          <Button onClick={handleSave} color="primary" variant="contained" disabled={loading}>
-            保存
-          </Button>
+          {tabValue === 0 && (
+            <Button onClick={handleSave} color="primary" variant="contained" disabled={loading}>
+              保存
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
 

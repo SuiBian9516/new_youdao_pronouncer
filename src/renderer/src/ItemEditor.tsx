@@ -1039,9 +1039,7 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
             <Box sx={{ width: '100%' }}>
               <Typography variant="subtitle1" gutterBottom>
                 {progressMessage ||
-                  (generatingVideo
-                    ? '正在生成视频，这需要一些时间，取决于您的网络状况...'
-                    : '正在处理...')}
+                  (generatingVideo ? '正在生成视频，这需要一些时间' : '正在处理...')}
               </Typography>
               <LinearProgress color="primary" />
             </Box>
@@ -1226,7 +1224,7 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
                 onChange={e => handleInputChange('name', e.target.value)}
                 fullWidth
                 error={!!nameError}
-                helperText={nameError || '输入单词或短语（不能包含单引号）'}
+                helperText={nameError || '输入单词或短语'}
                 variant="outlined"
                 required
                 disabled={isEditing}
@@ -1238,7 +1236,7 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
                 onChange={e => handleInputChange('description', e.target.value, 0)}
                 fullWidth
                 error={!!descriptionError}
-                helperText={descriptionError || '输入单词或短语的中文释义（不能包含单引号）'}
+                helperText={descriptionError || '输入单词或短语的中文释义'}
                 variant="outlined"
                 required
               />
@@ -1248,7 +1246,7 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
                 value={formData.example}
                 onChange={e => handleInputChange('example', e.target.value)}
                 fullWidth
-                helperText="输入包含该单词或短语的例句（不能包含单引号）"
+                helperText="输入包含该单词或短语的例句"
                 variant="outlined"
                 multiline
                 rows={2}
@@ -1276,7 +1274,7 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
                 onChange={e => handleInputChange('description', e.target.value, 1)}
                 fullWidth
                 error={!!exampleSentenceError}
-                helperText={exampleSentenceError || '输入例句的中文释义（不能包含单引号）'}
+                helperText={exampleSentenceError || '输入例句的中文释义'}
                 variant="outlined"
                 multiline
                 rows={2}

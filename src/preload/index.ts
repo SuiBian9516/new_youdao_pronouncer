@@ -1,6 +1,13 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
 
+declare global {
+  interface Window {
+    electron: typeof electronAPI;
+    api: typeof api;
+  }
+}
+
 const api = {
   fetchBingWallpaper: async () => {
     return await ipcRenderer.invoke('fetch-bing-wallpaper');
@@ -104,6 +111,9 @@ const api = {
   },
   fetchAllData: async () => {
     return await ipcRenderer.invoke('database:fetch-all');
+  },
+  getMetadata: async () => {
+    return await ipcRenderer.invoke('get-metadata');
   },
 };
 
