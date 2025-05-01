@@ -24,13 +24,27 @@ jobs:
           node-version: '20'
           cache: 'yarn'
 
+      - name: Setup Git for HTTPS
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global url."https://".insteadOf "git://"
+          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+        shell: pwsh
+
       - name: Configure Yarn
         run: |
           yarn config set network-timeout 300000
           yarn config set registry https://registry.npmjs.org/
+          yarn config set npmRegistryServer https://registry.npmjs.org/
+          yarn config set unsafeHttpWhitelist "*"
 
-      - name: Install dependencies
+      - name: Install dependencies with HTTPS
         run: yarn install --frozen-lockfile --network-timeout 300000
+        env:
+          GIT_SSH_COMMAND: "echo skipping ssh"
+          npm_config_registry: "https://registry.npmjs.org/"
+          YARN_REGISTRY: "https://registry.npmjs.org/"
+          USE_HTTPS: "true"
 
       - name: Build application
         run: yarn build:win
