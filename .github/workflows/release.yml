@@ -24,34 +24,42 @@ jobs:
           node-version: '20'
           cache: 'yarn'
 
+      - name: Configure Yarn
+        run: |
+          yarn config set network-timeout 300000
+          yarn config set registry https://registry.npmjs.org/
+
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile --network-timeout 300000
 
       - name: Build application
         run: yarn build:win
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CI: true
 
       - name: Extract version from tag
         id: get_version
         run: |
-          TAG_NAME=${GITHUB_REF#refs/tags/}
-          echo "VERSION=${TAG_NAME#v}" >> $GITHUB_OUTPUT
-        shell: bash
+          $TAG_NAME="${{ github.ref_name }}"
+          $VERSION=$TAG_NAME.TrimStart('v')
+          echo "VERSION=$VERSION" >> $env:GITHUB_OUTPUT
+        shell: pwsh
 
       - name: Check for CHANGELOG.md
         id: check_changelog
         run: |
-          if [ -f "CHANGELOG.md" ]; then
-            echo "EXISTS=true" >> $GITHUB_OUTPUT
-            echo "CHANGELOG_CONTENT<<EOF" >> $GITHUB_OUTPUT
-            cat CHANGELOG.md >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          else
-            echo "EXISTS=false" >> $GITHUB_OUTPUT
-            echo "CHANGELOG_CONTENT=版本 ${GITHUB_REF#refs/tags/} 发布" >> $GITHUB_OUTPUT
-          fi
-        shell: bash
+          if (Test-Path "CHANGELOG.md") {
+            echo "EXISTS=true" >> $env:GITHUB_OUTPUT
+            $content = Get-Content -Path "CHANGELOG.md" -Raw
+            echo "CHANGELOG_CONTENT<<EOF" >> $env:GITHUB_OUTPUT
+            echo "$content" >> $env:GITHUB_OUTPUT
+            echo "EOF" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "EXISTS=false" >> $env:GITHUB_OUTPUT
+            echo "CHANGELOG_CONTENT=版本 ${{ github.ref_name }} 发布" >> $env:GITHUB_OUTPUT
+          }
+        shell: pwsh
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
