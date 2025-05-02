@@ -1,15 +1,16 @@
 # Changelog
 
-**YoudaoPronouncer** - A video-maker software using learn English
-
-## [0.1.0] - 2025-05-01
+## [0.2.0-beta.1] - 2025-05-02
 
 ### New
-- Add support for `Youdao`, `Pixabay` and `Deepseek`
-- Allow video generating
+- Add export file button
+- Add import data from `.pnd` file
+- Add `preference` page in setting
+- Add new setting `fetchWhenAddItem`
+> Programme will fetch data when item changed
 
 ### Fix
-- Progress bar can disappear immediately
+- Item order no longer change when editing detailed information
 
 ### Optimization
-- Code formatted
+- Change icon for `GetData` button

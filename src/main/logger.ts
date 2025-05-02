@@ -1,8 +1,8 @@
 import winston, { createLogger, format, transports } from 'winston';
 import Utils from './utils';
-import { is } from '@electron-toolkit/utils';
 import { join } from 'path';
 import { PATH_LOG } from './constants';
+import { app } from 'electron';
 
 export default class Logger {
   public static instance: Logger | undefined;
@@ -11,7 +11,7 @@ export default class Logger {
   constructor() {
     Logger.instance = this;
     this.winston = createLogger({
-      level: is.dev ? 'debug' : 'info',
+      level: !app.isPackaged ? 'debug' : 'info',
       format: format.combine(
         format.timestamp({
           format: 'YYYY-MM-DD HH:mm:ss',
@@ -20,7 +20,7 @@ export default class Logger {
           return `[${timestamp}][${level}][${module || 'Unknown'}] ${message}`;
         })
       ),
-      transports: !is.dev
+      transports: app.isPackaged
         ? [
             new transports.File({
               filename: join(PATH_LOG, `log-${Utils.getShortTimeString()}.log`),

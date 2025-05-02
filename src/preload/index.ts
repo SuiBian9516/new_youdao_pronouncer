@@ -115,6 +115,12 @@ const api = {
   getMetadata: async () => {
     return await ipcRenderer.invoke('get-metadata');
   },
+  exportDatabaseFile: async () => {
+    return await ipcRenderer.invoke('database:export');
+  },
+  importDatabaseFile: async () => {
+    return await ipcRenderer.invoke('database:import');
+  },
 };
 
 if (process.contextIsolated) {

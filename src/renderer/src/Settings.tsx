@@ -16,6 +16,8 @@ import {
   ThemeProvider,
   Tabs,
   Tab,
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { customTheme } from './App';
@@ -37,6 +39,9 @@ interface Config {
   deepseek: {
     apiKey: string;
   };
+  preference: {
+    fetchWhenAddItem: boolean;
+  };
 }
 
 interface TabPanelProps {
@@ -48,16 +53,29 @@ interface TabPanelProps {
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
 
+  const overflowStyle = index === 2 ? 'hidden' : 'auto';
+
   return (
     <div
       role="tabpanel"
       hidden={value !== index}
       id={`settings-tabpanel-${index}`}
       aria-labelledby={`settings-tab-${index}`}
-      style={{ width: '100%' }}
+      style={{ width: '100%', overflow: overflowStyle }}
       {...other}
     >
-      {value === index && <Box sx={{ py: 2, width: '100%' }}>{children}</Box>}
+      {value === index && (
+        <Box
+          sx={{
+            py: 1,
+            width: '100%',
+            height: '100%',
+            overflow: overflowStyle,
+          }}
+        >
+          {children}
+        </Box>
+      )}
     </div>
   );
 }
@@ -80,6 +98,9 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     },
     deepseek: {
       apiKey: '',
+    },
+    preference: {
+      fetchWhenAddItem: false,
     },
   });
 
@@ -183,12 +204,13 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
             variant="fullWidth"
             centered
           >
-            <Tab label="API配置" {...a11yProps(0)} />
-            <Tab label="关于" {...a11yProps(1)} />
+            <Tab label="偏好" {...a11yProps(0)} />
+            <Tab label="API配置" {...a11yProps(1)} />
+            <Tab label="关于" {...a11yProps(2)} />
           </Tabs>
         </Box>
 
-        <DialogContent dividers sx={{ p: 0 }}>
+        <DialogContent dividers sx={{ p: 0, overflow: 'auto', maxHeight: 'calc(100vh - 180px)' }}>
           {loading ? (
             <Box textAlign="center" py={3}>
               <Typography>加载中...</Typography>
@@ -196,6 +218,37 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
           ) : (
             <Box sx={{ width: '100%' }}>
               <TabPanel value={tabValue} index={0}>
+                <Box p={2}>
+                  <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+                    基本偏好设置
+                  </Typography>
+
+                  <Box display="flex" alignItems="center" mt={2}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={config.preference.fetchWhenAddItem}
+                          onChange={e => {
+                            setConfig(prev => ({
+                              ...prev,
+                              preference: {
+                                ...prev.preference,
+                                fetchWhenAddItem: e.target.checked,
+                              },
+                            }));
+                          }}
+                        />
+                      }
+                      label="添加项目时自动获取数据"
+                    />
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" mt={1} ml={3}>
+                    启用后，添加新词条时会自动获取相关的音频和图片
+                  </Typography>
+                </Box>
+              </TabPanel>
+
+              <TabPanel value={tabValue} index={1}>
                 <Box p={2}>
                   <Box mb={3}>
                     <Typography variant="subtitle1" gutterBottom fontWeight="bold">
@@ -300,7 +353,7 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                 </Box>
               </TabPanel>
 
-              <TabPanel value={tabValue} index={1}>
+              <TabPanel value={tabValue} index={2}>
                 <Box
                   display="flex"
                   flexDirection="column"
@@ -309,8 +362,9 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                   sx={{
                     width: '100%',
                     maxWidth: '100%',
-                    overflowX: 'hidden',
+                    overflow: 'hidden',
                     boxSizing: 'border-box',
+                    height: '100%',
                   }}
                 >
                   <Box
@@ -318,9 +372,9 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                     src={iconPath}
                     alt="YoudaoPronouncer"
                     sx={{
-                      height: 120,
-                      width: 120,
-                      mb: 3,
+                      height: 100,
+                      width: 100,
+                      mb: 2,
                     }}
                   />
                   <Typography
@@ -328,7 +382,7 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                     gutterBottom
                     fontWeight="bold"
                     textAlign="center"
-                    sx={{ wordBreak: 'break-word', maxWidth: '100%' }}
+                    sx={{ wordBreak: 'break-word', maxWidth: '100%', mb: 0.5 }}
                   >
                     YoudaoPronouncer
                   </Typography>
@@ -336,21 +390,20 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                     variant="body1"
                     gutterBottom
                     textAlign="center"
-                    sx={{ wordBreak: 'break-word', maxWidth: '100%' }}
+                    sx={{ wordBreak: 'break-word', maxWidth: '100%', mb: 1 }}
                   >
                     版本: {version}
                   </Typography>
                   <Typography
                     variant="subtitle2"
                     gutterBottom
-                    mt={3}
+                    mt={1.5}
                     textAlign="center"
-                    sx={{ wordBreak: 'break-word', maxWidth: '100%' }}
+                    sx={{ wordBreak: 'break-word', maxWidth: '100%', mb: 0.5 }}
                   >
                     开发者
                   </Typography>
                   <Box
-                    mt={1}
                     sx={{
                       width: '100%',
                       maxWidth: '100%',
@@ -378,19 +431,12 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                   <Typography
                     variant="body2"
                     color="text.secondary"
-                    mt={4}
+                    mt={2}
                     textAlign="center"
                     sx={{ wordBreak: 'break-word', maxWidth: '100%' }}
                   >
                     一款辅助英语发音学习的工具
                   </Typography>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    mt={1}
-                    textAlign="center"
-                    sx={{ wordBreak: 'break-word', maxWidth: '100%' }}
-                  ></Typography>
                 </Box>
               </TabPanel>
             </Box>
@@ -398,9 +444,9 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} color="inherit">
-            {tabValue === 0 ? '取消' : '关闭'}
+            {tabValue !== 2 ? '取消' : '关闭'}
           </Button>
-          {tabValue === 0 && (
+          {tabValue !== 2 && (
             <Button onClick={handleSave} color="primary" variant="contained" disabled={loading}>
               保存
             </Button>

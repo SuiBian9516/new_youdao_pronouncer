@@ -1,7 +1,7 @@
 import { dirname, join } from 'path';
 import Fetcher from './fetcher';
 import Logger from './logger';
-import { mkdirSync, readdirSync, writeFileSync } from 'fs';
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import Utils from './utils';
 
 export default class Database {
@@ -21,7 +21,13 @@ export default class Database {
     return this.raw[name];
   }
 
-  public addItem(name: string, example: string, description: [string, string], count: number) {
+  public addItem(
+    name: string,
+    example: string,
+    description: [string, string],
+    count: number,
+    autoSave: boolean = true
+  ) {
     if (name in Object.keys(this.raw)) {
       return;
     }
@@ -36,6 +42,7 @@ export default class Database {
       image: '',
     };
     this.id.push(id);
+    if (autoSave) this.save();
   }
 
   public deleteItem(name: string) {
@@ -108,6 +115,17 @@ export default class Database {
     return true;
   }
 
+  public updateItem(name: string, example: string, description: [string, string], count: number) {
+    if (this.raw[name]) {
+      this.raw[name].example = example;
+      this.raw[name].description = description;
+      this.raw[name].count = count;
+      this.save();
+    } else {
+      Logger.getInstance().warn(`Fail to update item: No such item: ${name}`, 'database');
+    }
+  }
+
   public getAudioPath(name: string): [string, string] {
     return this.raw[name].audio;
   }
@@ -127,6 +145,36 @@ export default class Database {
       this.raw[k].image = '';
     }
     this.save();
+  }
+
+  public exportDatabaseFile(path: string) {
+    let newData = [];
+    for (let v of Object.values(this.raw)) {
+      newData.push({
+        name: v.name,
+        description: v.description,
+        example: v.example,
+        count: v.count,
+      });
+    }
+    writeFileSync(path, JSON.stringify(newData, null, 2), { flag: 'w' });
+  }
+
+  public importDatabaseFile(path: string) {
+    try {
+      let raw = JSON.parse(readFileSync(path, { encoding: 'utf-8' }));
+      let keys = Object.keys(this.raw);
+      for (let v of raw) {
+        if (v.name in keys) {
+          continue;
+        } else {
+          this.addItem(v.name, v.example, v.description, v.count, false);
+        }
+      }
+      this.save();
+    } catch (e) {
+      Logger.getInstance().error(`Fail to import data from ${path}: ${e}`, 'database');
+    }
   }
 }
 

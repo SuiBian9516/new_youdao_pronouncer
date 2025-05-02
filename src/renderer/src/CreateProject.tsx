@@ -24,7 +24,6 @@ import {
 import { customTheme } from './App';
 import CloseIcon from '@mui/icons-material/Close';
 import FolderIcon from '@mui/icons-material/Folder';
-import * as path from 'path';
 
 interface ProjectManifest {
   name: string;
@@ -170,7 +169,7 @@ export default function CreateProjectDialog({
     try {
       const defaultPath = await window.api.getDefaultProjectPath();
       if (projectPath === defaultPath) {
-        finalPath = path.join(defaultPath, projectName);
+        finalPath = `${defaultPath}/${projectName}`;
       }
     } catch (error) {
       console.error('获取默认路径失败:', error);

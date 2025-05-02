@@ -24,6 +24,9 @@ export default class Pronouncer {
         model: 'deepseek-chat',
       },
       projects: {},
+      preference: {
+        fetchWhenAddItem: false,
+      },
     };
     Utils.checkDirectory(PATH_ROOT, true);
 
@@ -49,6 +52,7 @@ export default class Pronouncer {
     youdao: { appKey: string; key: string };
     pixabay: { key: string };
     deepseek: { key: string; model: 'deepseek-chat' };
+    preference: { fetchWhenAddItem: boolean };
   }) {
     this.config = { ...config, projects: this.config.projects };
     this.saveConfig();
@@ -165,6 +169,10 @@ export default class Pronouncer {
     };
   }
 
+  public getPreference(): ConfigPreference {
+    return this.config.preference;
+  }
+
   public saveConfig() {
     fs.writeFileSync(PATH_CONFIG, JSON.stringify(this.config, null, 2));
     Logger.getInstance().debug('Config file saved', 'pronouncer');
@@ -198,6 +206,11 @@ export interface AppConfig {
       lastModifiedTime: string;
     };
   };
+  preference: ConfigPreference;
+}
+
+export interface ConfigPreference {
+  fetchWhenAddItem: boolean;
 }
 
 export type ProjectList = {

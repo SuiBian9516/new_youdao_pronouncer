@@ -65,10 +65,11 @@ ipcMain.handle('setting:get', async () => {
     const youdaoKeys = pronouncer.getYoudaoKeys();
     const pixabayKey = pronouncer.getPixabayKey();
     const deepseekConfig = pronouncer.getDeepseekKey();
+    const preference = pronouncer.getPreference();
 
     return {
       youdao: {
-        appKey: youdaoKeys.appKey,
+        appKey: youdaoKeys.appKey || '',
         key: youdaoKeys.secretKey,
       },
       pixabay: {
@@ -76,6 +77,9 @@ ipcMain.handle('setting:get', async () => {
       },
       deepseek: {
         apiKey: deepseekConfig?.key || '',
+      },
+      preference: {
+        fetchWhenAddItem: preference?.fetchWhenAddItem || false,
       },
     };
   } catch (error) {
@@ -98,6 +102,7 @@ ipcMain.handle('setting:save', async (_, config) => {
         key: config.deepseek.apiKey,
         model: 'deepseek-chat',
       },
+      preference: config.preference,
     });
 
     return true;
@@ -289,8 +294,6 @@ ipcMain.handle('database:add-item', async (_, item) => {
 
     database.addItem(name, example || '', description, count || 1);
 
-    database.save();
-
     Logger.getInstance().info(`Success to add item: ${name}`, 'main');
     return {
       success: true,
@@ -326,20 +329,7 @@ ipcMain.handle('database:update-item', async (_, item) => {
     }
 
     const database = currentProject.getDatabase();
-
-    try {
-      database.getItem(name);
-    } catch (error) {
-      return {
-        success: false,
-        message: `项目 "${name}" 不存在`,
-      };
-    }
-
-    database.deleteItem(name);
-    database.addItem(name, example || '', description, count || 1);
-
-    database.save();
+    database.updateItem(name, example, description, count);
 
     Logger.getInstance().info(`Success to update item: ${name}`, 'main');
     return {
@@ -992,9 +982,79 @@ ipcMain.handle('database:fetch-all', async _ => {
 
 ipcMain.handle('get-metadata', async _ => {
   return {
-    version: VERSION.join('.'),
+    version: VERSION,
     authors: AUTHORS,
   };
+});
+
+ipcMain.handle('database:export', async _ => {
+  try {
+    let project = pronouncer.getProject();
+
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory', 'createDirectory'],
+      title: '选择保存的位置',
+      buttonLabel: '选择文件夹',
+    });
+
+    if (result.canceled) {
+      return {
+        success: false,
+        message: `用户已取消`,
+      };
+    } else {
+      const path = join(result.filePaths[0], `${project.getName()}.pnd`);
+      project.getDatabase().exportDatabaseFile(path);
+      return {
+        success: true,
+        message: `已导出数据文件至：${path}`,
+      };
+    }
+  } catch (error) {
+    Logger.getInstance().error(`Fail to export: ${error}`, 'main');
+    return {
+      success: false,
+      message: `在导出时遇到问题：${error}`,
+    };
+  }
+});
+
+ipcMain.handle('database:import', async _ => {
+  try {
+    let project = pronouncer.getProject();
+
+    const result = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      title: '选择数据文件',
+      buttonLabel: '选择文件',
+      filters: [
+        {
+          name: 'Database File',
+          extensions: ['pnd'],
+        },
+      ],
+    });
+
+    if (result.canceled) {
+      return {
+        success: false,
+        message: `用户已取消`,
+      };
+    } else {
+      const path = result.filePaths[0];
+      project.getDatabase().importDatabaseFile(path);
+      return {
+        success: true,
+        message: `已导入数据文件：${path}`,
+      };
+    }
+  } catch (error) {
+    Logger.getInstance().error(`Fail to import: ${error}`, 'main');
+    return {
+      success: false,
+      message: `在导入时遇到问题：${error}`,
+    };
+  }
 });
 
 app.whenReady().then(async () => {

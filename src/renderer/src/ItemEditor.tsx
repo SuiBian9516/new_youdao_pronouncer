@@ -26,6 +26,8 @@ import {
   Chip,
   LinearProgress,
   Avatar,
+  Skeleton,
+  Fade,
 } from '@mui/material';
 import { customTheme } from './App';
 import AddIcon from '@mui/icons-material/Add';
@@ -43,11 +45,12 @@ import ImageIcon from '@mui/icons-material/Image';
 import PreviewIcon from '@mui/icons-material/Preview';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
-import DownloadIcon from '@mui/icons-material/Download';
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
+import FileUploadIcon from '@mui/icons-material/FileUpload';
 import ProjectManifestEditor from './ProjectManifestEditor';
 import AIImport from './AIImport';
+import ImportExportManager from './ImportExportManager';
 
 interface Item {
   id: string;
@@ -94,6 +97,7 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
   const lastRefreshTimeRef = useRef<number>(Date.now());
 
   const [aiImportDialogOpen, setAiImportDialogOpen] = useState(false);
+  const [importExportDialogOpen, setImportExportDialogOpen] = useState(false);
 
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [audioPaths, setAudioPaths] = useState<[string, string]>(['', '']);
@@ -172,6 +176,18 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
     message: '',
     severity: 'info',
   });
+
+  const checkAndFetchData = useCallback(async () => {
+    try {
+      const configResult = await window.api.getConfig();
+      if (configResult && configResult.preference && configResult.preference.fetchWhenAddItem) {
+        showAlert('正在自动获取数据...', 'info');
+        await fetchAllData();
+      }
+    } catch (error) {
+      console.error('检查配置或获取数据时出错:', error);
+    }
+  }, []);
 
   const loadItems = useCallback(async (silent: boolean = false) => {
     try {
@@ -440,6 +456,7 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
         );
         setDialogOpen(false);
         loadItems();
+        checkAndFetchData();
       } else {
         showAlert(result.message || '保存失败', 'error');
       }
@@ -883,23 +900,16 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
       if (result.success) {
         showAlert('数据获取成功！', 'success');
         loadItems();
-
-        setShowProgress(false);
-        setProgressMessage('');
       } else {
         showAlert(`获取数据失败: ${result.message || '未知错误'}`, 'error');
-
-        setShowProgress(false);
-        setProgressMessage('');
       }
     } catch (error) {
       console.error('获取数据失败:', error);
       showAlert(`获取数据失败: ${error}`, 'error');
-
-      setShowProgress(false);
-      setProgressMessage('');
     } finally {
       setFetchingData(false);
+      setShowProgress(false);
+      setProgressMessage('');
     }
   };
 
@@ -928,7 +938,7 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', flex: 1 }}>
-            <IconButton onClick={onBack} sx={{ mr: 1 }}>
+            <IconButton onClick={onBack} sx={{ mr: 1 }} disabled={generatingVideo || fetchingData}>
               <ArrowBackIcon />
             </IconButton>
             <Typography variant="h5" component="h1" noWrap sx={{ mr: 2 }}>
@@ -947,7 +957,7 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
             <Tooltip title="获取数据">
               <span>
                 <IconButton color="primary" onClick={handleGetData} disabled={fetchingData}>
-                  <DownloadIcon />
+                  <CloudDownloadIcon />
                 </IconButton>
               </span>
             </Tooltip>
@@ -1024,11 +1034,11 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
               <Button
                 variant="contained"
                 color="secondary"
-                startIcon={<SmartToyIcon />}
-                onClick={() => setAiImportDialogOpen(true)}
+                startIcon={<FileUploadIcon />}
+                onClick={() => setImportExportDialogOpen(true)}
                 size="small"
               >
-                AI帮导入
+                导入与导出
               </Button>
             </Box>
           </Box>
@@ -1057,16 +1067,48 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
           }}
         >
           {loading ? (
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100%',
-              }}
-            >
-              <CircularProgress />
-            </Box>
+            <Fade in={loading}>
+              <Box sx={{ width: '100%', padding: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                  <Skeleton variant="circular" width={32} height={32} sx={{ mr: 2 }} />
+                  <Skeleton variant="text" width="40%" height={32} />
+                </Box>
+
+                {[...Array(6)].map((_, index) => (
+                  <Box key={index} sx={{ display: 'flex', mb: 2, alignItems: 'center' }}>
+                    <Skeleton variant="rectangular" width={24} height={24} sx={{ mr: 2, ml: 1 }} />
+                    <Box sx={{ width: '100%' }}>
+                      <Box sx={{ display: 'flex', width: '100%' }}>
+                        <Skeleton variant="text" width="15%" sx={{ mr: 1 }} />
+                        <Skeleton variant="text" width="20%" sx={{ mr: 1 }} />
+                        <Skeleton variant="text" width="20%" sx={{ mr: 1 }} />
+                        <Skeleton variant="text" width="20%" sx={{ mr: 1 }} />
+                        <Skeleton
+                          variant="rectangular"
+                          width={80}
+                          height={24}
+                          sx={{ borderRadius: 1 }}
+                        />
+                      </Box>
+                      {index % 2 === 0 && (
+                        <Box sx={{ mt: 0.5, pl: 0.5 }}>
+                          <Skeleton variant="text" width="60%" height={16} />
+                        </Box>
+                      )}
+                    </Box>
+                  </Box>
+                ))}
+
+                <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+                  <Skeleton
+                    variant="rectangular"
+                    width={180}
+                    height={36}
+                    sx={{ borderRadius: 1 }}
+                  />
+                </Box>
+              </Box>
+            </Fade>
           ) : items.length === 0 ? (
             <Box
               sx={{
@@ -1703,6 +1745,13 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
           open={aiImportDialogOpen}
           onClose={() => setAiImportDialogOpen(false)}
           onImportSuccess={() => loadItems()}
+        />
+
+        <ImportExportManager
+          open={importExportDialogOpen}
+          onClose={() => setImportExportDialogOpen(false)}
+          onSuccess={() => loadItems()}
+          onImportSuccess={checkAndFetchData}
         />
       </Box>
     </ThemeProvider>

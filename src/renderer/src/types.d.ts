@@ -42,6 +42,7 @@ interface Window {
       deepseek: {
         apiKey: string;
       };
+      preference: { fetchWhenAddItem: boolean };
     }>;
     saveConfig: (config: any) => Promise<boolean>;
     getProjects: () => Promise<any[]>;
@@ -174,6 +175,8 @@ interface Window {
     onFetchingProgress: (callback: (message: string) => Promise<void>) => Promise<void>;
     onGeneratingProgress: (callback: (message: string) => Promise<void>) => Promise<void>;
     getMetadata: () => Promise<{ version: string; authors: string[] }>;
+    exportDatabaseFile: () => Promise<{ success: boolean; message: string }>;
+    importDatabaseFile: () => Promise<{ success: boolean; message: string }>;
   };
 }
 
