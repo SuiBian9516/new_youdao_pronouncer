@@ -1,6 +1,6 @@
 {
   "name": "new_youdao_pronouncer",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A video-making software using learn English",
   "main": "./out/main/index.js",
   "author": "SuiBian9516 <m1311826090@outlook.com>",
