@@ -42,7 +42,12 @@ interface Window {
       deepseek: {
         apiKey: string;
       };
-      preference: { fetchWhenAddItem: boolean };
+      preference: {
+        fetchWhenAddItem: boolean;
+        autoCleanCache: boolean;
+        autoOpenFolder: boolean;
+        flashAttention: boolean;
+      };
     }>;
     saveConfig: (config: any) => Promise<boolean>;
     getProjects: () => Promise<any[]>;
@@ -177,7 +182,7 @@ interface Window {
     getMetadata: () => Promise<{ version: string; authors: string[] }>;
     exportDatabaseFile: () => Promise<{ success: boolean; message: string }>;
     importDatabaseFile: () => Promise<{ success: boolean; message: string }>;
-    deleteItems: (itemIds:string[]) => Promise<{ success: boolean; message: string }>;
+    deleteItems: (itemIds: string[]) => Promise<{ success: boolean; message: string }>;
     maximizeWindow: () => Promise<void>;
     minimizeWindow: () => Promise<void>;
     closeWindow: () => Promise<void>;

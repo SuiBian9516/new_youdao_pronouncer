@@ -16,11 +16,11 @@ const TitleBarContainer = styled('div')<TitleBarContainerProps>(({ height }) => 
   height: height,
   backgroundColor: '#146ccc',
   color: 'white',
-  WebkitAppRegion: 'drag', // 允许用户拖拽标题栏移动窗口
+  WebkitAppRegion: 'drag',
   width: '100%',
   boxSizing: 'border-box',
   userSelect: 'none',
-  position: 'fixed', // 使用fixed定位，确保固定在顶部
+  position: 'fixed',
   top: 0,
   left: 0,
   right: 0,
@@ -43,7 +43,7 @@ const AppIcon = styled('img')({
 
 const WindowControls = styled('div')({
   display: 'flex',
-  WebkitAppRegion: 'no-drag', // 控制按钮不应该被拖拽影响
+  WebkitAppRegion: 'no-drag',
 });
 
 interface WindowButtonProps {
@@ -73,7 +73,7 @@ const CloseButton = styled(WindowButton)({
 
 interface TitleBarProps {
   title?: string;
-  heightPx?: number; // 新增高度参数，默认值在组件内部处理
+  heightPx?: number;
 }
 
 const TitleBar = ({ title = 'YoudaoPronouncer', heightPx = 32 }: TitleBarProps) => {

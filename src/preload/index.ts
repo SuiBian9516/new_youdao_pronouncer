@@ -124,15 +124,15 @@ const api = {
   importDatabaseFile: async () => {
     return await ipcRenderer.invoke('database:import');
   },
-  maximizeWindow: async() =>{
+  maximizeWindow: async () => {
     return await ipcRenderer.invoke('window:max');
   },
-  minimizeWindow: async() =>{
+  minimizeWindow: async () => {
     return await ipcRenderer.invoke('window:min');
   },
-  closeWindow: async() =>{
+  closeWindow: async () => {
     return await ipcRenderer.invoke('window:close');
-  }
+  },
 };
 
 if (process.contextIsolated) {

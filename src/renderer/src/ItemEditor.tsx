@@ -88,7 +88,6 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [draggedOverItem, setDraggedOverItem] = useState<number | null>(null);
 
-  // 批量管理相关状态
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [confirmBulkDeleteOpen, setConfirmBulkDeleteOpen] = useState(false);
@@ -234,6 +233,11 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
       hasLoadedRef.current = true;
 
       setupProgressListeners();
+
+      return () => {
+        window.electron.ipcRenderer.removeListener('progress:fetch', handleFetchingProgress);
+        window.electron.ipcRenderer.removeListener('progress:generate', handleGeneratingProgress);
+      };
     }
 
     return () => {
@@ -244,16 +248,19 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
     };
   }, [loadItems]);
 
-  const setupProgressListeners = async () => {
-    await window.api.onFetchingProgress(async message => {
-      setProgressMessage(message);
-      setShowProgress(true);
-    });
+  const handleFetchingProgress = async (message: string) => {
+    setProgressMessage(message);
+    setShowProgress(true);
+  };
 
-    await window.api.onGeneratingProgress(async message => {
-      setProgressMessage(message);
-      setShowProgress(true);
-    });
+  const handleGeneratingProgress = async (message: string) => {
+    setProgressMessage(message);
+    setShowProgress(true);
+  };
+
+  const setupProgressListeners = () => {
+    window.api.onFetchingProgress(handleFetchingProgress);
+    window.api.onGeneratingProgress(handleGeneratingProgress);
   };
 
   useEffect(() => {
@@ -612,9 +619,6 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
           `视频生成成功！${result.filePath ? `保存在: ${result.filePath}` : ''}`,
           'success'
         );
-        if (result.filePath) {
-          window.api.showItemInFolder(result.filePath);
-        }
       } else {
         showAlert(`生成视频失败: ${result.message || '未知错误'}`, 'error');
       }
@@ -975,10 +979,10 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
           display: 'flex',
           flexDirection: 'column',
           boxSizing: 'border-box',
-          overflow: 'hidden', // 确保外层容器不显示滚动条
+          overflow: 'hidden',
         }}
       >
-        {/* 标题栏区域 - 固定不滚动 */}
+        {}
         <Box
           sx={{
             p: 2,
@@ -997,7 +1001,11 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', flex: 1 }}>
-              <IconButton onClick={onBack} sx={{ mr: 1 }} disabled={generatingVideo || fetchingData}>
+              <IconButton
+                onClick={onBack}
+                sx={{ mr: 1 }}
+                disabled={generatingVideo || fetchingData}
+              >
                 <ArrowBackIcon />
               </IconButton>
               <Typography variant="h5" component="h1" noWrap sx={{ mr: 2 }}>
@@ -1054,7 +1062,7 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
               </Box>
             )}
           </Box>
-          
+
           <Paper
             sx={{
               p: { xs: 1, sm: 2 },
@@ -1064,7 +1072,6 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
             }}
           >
             {bulkMode ? (
-              // 批量管理模式下显示的工具栏
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="subtitle1">
                   已选择 {selectedItems.size} 项（共 {filteredItems.length} 项）
@@ -1091,7 +1098,6 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
                 </Box>
               </Box>
             ) : (
-              // 正常模式下显示的工具栏
               <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
                 <Box sx={{ flex: 1 }}>
                   <TextField
@@ -1111,7 +1117,11 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
                   />
                 </Box>
                 <Box
-                  sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, gap: 2 }}
+                  sx={{
+                    display: 'flex',
+                    justifyContent: { xs: 'flex-start', sm: 'flex-end' },
+                    gap: 2,
+                  }}
                 >
                   <Button
                     variant="contained"
@@ -1156,12 +1166,12 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
             </Paper>
           )}
         </Box>
-        
-        {/* 可滚动内容区域 */}
-        <Box 
+
+        {}
+        <Box
           sx={{
             flex: 1,
-            overflow: 'auto', // 只在内容区域添加滚动
+            overflow: 'auto',
             px: 2,
             pb: 2,
             '&::-webkit-scrollbar': {
@@ -1191,7 +1201,7 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
               display: 'flex',
               flexDirection: 'column',
               boxSizing: 'border-box',
-              overflow: 'hidden', // 确保内容不溢出
+              overflow: 'hidden',
             }}
           >
             {loading ? (
@@ -1204,7 +1214,12 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
 
                   {[...Array(6)].map((_, index) => (
                     <Box key={index} sx={{ display: 'flex', mb: 2, alignItems: 'center' }}>
-                      <Skeleton variant="rectangular" width={24} height={24} sx={{ mr: 2, ml: 1 }} />
+                      <Skeleton
+                        variant="rectangular"
+                        width={24}
+                        height={24}
+                        sx={{ mr: 2, ml: 1 }}
+                      />
                       <Box sx={{ width: '100%' }}>
                         <Box sx={{ display: 'flex', width: '100%' }}>
                           <Skeleton variant="text" width="15%" sx={{ mr: 1 }} />
@@ -1264,16 +1279,16 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
                 </Button>
               </Box>
             ) : (
-              <TableContainer 
+              <TableContainer
                 component={Paper}
-                sx={{ 
+                sx={{
                   height: '100%',
                   maxHeight: '100%',
                   overscrollBehavior: 'contain',
-                  overflowX: 'hidden', // 隐藏横向滚动条
+                  overflowX: 'hidden',
                   '&::-webkit-scrollbar': {
                     width: '8px',
-                    height: '0', // 将横向滚动条高度设为0
+                    height: '0',
                     backgroundColor: 'transparent',
                   },
                   '&::-webkit-scrollbar-track': {
@@ -1296,23 +1311,57 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
                     <TableRow>
                       <TableCell
                         padding="checkbox"
-                        width="40px"
-                        sx={{ width: '40px', maxWidth: '40px' }}
-                      ></TableCell>
-                      <TableCell padding="checkbox" width="40px" sx={{ width: '40px' }}>
-                        {bulkMode && (
-                          <Checkbox
-                            checked={filteredItems.length > 0 && selectedItems.size === filteredItems.length}
-                            indeterminate={selectedItems.size > 0 && selectedItems.size < filteredItems.length}
-                            onChange={handleSelectAllItems}
-                          />
-                        )}
+                        sx={{
+                          width: '48px',
+                          minWidth: '48px',
+                          boxSizing: 'border-box',
+                          padding: 0,
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          {bulkMode && (
+                            <Checkbox
+                              checked={
+                                filteredItems.length > 0 &&
+                                selectedItems.size === filteredItems.length
+                              }
+                              indeterminate={
+                                selectedItems.size > 0 && selectedItems.size < filteredItems.length
+                              }
+                              onChange={handleSelectAllItems}
+                              sx={{
+                                padding: '4px',
+                                '& .MuiSvgIcon-root': {
+                                  fontSize: '20px',
+                                },
+                              }}
+                            />
+                          )}
+                        </Box>
                       </TableCell>
+                      <TableCell
+                        padding="checkbox"
+                        sx={{
+                          width: '32px',
+                          minWidth: '32px',
+                          ...(bulkMode && { padding: 0, width: 0, maxWidth: 0 }),
+                        }}
+                      ></TableCell>
                       <TableCell sx={{ width: '15%', minWidth: '80px' }}>名称</TableCell>
                       <TableCell sx={{ width: '20%', minWidth: '100px' }}>释义</TableCell>
                       <TableCell sx={{ width: '20%', minWidth: '100px' }}>例句</TableCell>
                       <TableCell sx={{ width: '20%', minWidth: '100px' }}>例句释义</TableCell>
-                      <TableCell sx={{ width: '5%', minWidth: '40px', whiteSpace: 'nowrap' }}>次数</TableCell>
+                      <TableCell sx={{ width: '5%', minWidth: '40px', whiteSpace: 'nowrap' }}>
+                        次数
+                      </TableCell>
                       <TableCell align="center" sx={{ width: '80px', minWidth: '80px' }}>
                         操作
                       </TableCell>
@@ -1341,55 +1390,92 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
                         }}
                       >
                         <TableCell padding="checkbox">
-                          <Box
-                            sx={{
-                              cursor: 'grab',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              '&:hover': {
-                                backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                                borderRadius: '4px',
-                              },
-                              '&:active': {
-                                cursor: 'grabbing',
-                              },
-                            }}
-                          >
-                            <DragHandleIcon color="action" fontSize="small" />
-                          </Box>
-                        </TableCell>
-                        <TableCell padding="checkbox">
-                          {bulkMode && (
-                            <Checkbox
-                              checked={selectedItems.has(item.id)}
-                              onChange={() => handleSelectItem(item.id)}
-                            />
+                          {bulkMode ? (
+                            <Box
+                              sx={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              <Checkbox
+                                checked={selectedItems.has(item.id)}
+                                onChange={() => handleSelectItem(item.id)}
+                                sx={{
+                                  padding: '4px',
+                                  '& .MuiSvgIcon-root': {
+                                    fontSize: '20px',
+                                  },
+                                }}
+                              />
+                            </Box>
+                          ) : (
+                            <Box
+                              sx={{
+                                cursor: 'grab',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                                  borderRadius: '4px',
+                                },
+                                '&:active': {
+                                  cursor: 'grabbing',
+                                },
+                              }}
+                            >
+                              <DragHandleIcon color="action" fontSize="small" />
+                            </Box>
                           )}
                         </TableCell>
                         <TableCell
-                          sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          padding="checkbox"
+                          sx={{
+                            ...(bulkMode && { padding: 0, width: 0, maxWidth: 0 }),
+                          }}
+                        ></TableCell>
+                        <TableCell
+                          sx={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
                         >
                           <Tooltip title={item.name}>
                             <span>{item.name}</span>
                           </Tooltip>
                         </TableCell>
                         <TableCell
-                          sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          sx={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
                         >
                           <Tooltip title={item.description[0]}>
                             <span>{item.description[0]}</span>
                           </Tooltip>
                         </TableCell>
                         <TableCell
-                          sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          sx={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
                         >
                           <Tooltip title={item.example}>
                             <span>{item.example}</span>
                           </Tooltip>
                         </TableCell>
                         <TableCell
-                          sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          sx={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
                         >
                           <Tooltip title={item.description[1]}>
                             <span>{item.description[1]}</span>
@@ -1528,7 +1614,9 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
         <Dialog open={confirmBulkDeleteOpen} onClose={() => setConfirmBulkDeleteOpen(false)}>
           <DialogTitle>确认批量删除</DialogTitle>
           <DialogContent>
-            <Typography>您确定要删除选中的 {selectedItems.size} 项数据吗？此操作不可逆。</Typography>
+            <Typography>
+              您确定要删除选中的 {selectedItems.size} 项数据吗？此操作不可逆。
+            </Typography>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setConfirmBulkDeleteOpen(false)} color="inherit">

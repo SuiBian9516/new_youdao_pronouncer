@@ -26,25 +26,43 @@ export default class Pronouncer {
       projects: {},
       preference: {
         fetchWhenAddItem: false,
+        autoCleanCache: true,
+        autoOpenFolder: true,
+        flashAttention: false,
       },
     };
     Utils.checkDirectory(PATH_ROOT, true);
 
     Utils.checkDirectory(PATH_PROJECT, true);
-    const defaultConfig = JSON.stringify(
-      {
-        youdao: {
-          appKey: '',
-          secretKey: '',
-        },
-        projects: {},
-      },
-      null,
-      2
-    );
-    Utils.checkFile(PATH_CONFIG, defaultConfig);
 
-    this.config = JSON.parse(fs.readFileSync(PATH_CONFIG, { encoding: 'utf-8' }));
+    const defaultConfig: AppConfig = {
+      youdao: {
+        appKey: '',
+        key: '',
+      },
+      pixabay: {
+        key: '',
+      },
+      deepseek: {
+        key: '',
+        model: 'deepseek-chat',
+      },
+      projects: {},
+      preference: {
+        fetchWhenAddItem: false,
+        autoCleanCache: true,
+        autoOpenFolder: true,
+        flashAttention: false,
+      },
+    };
+
+    const defaultConfigContent = JSON.stringify(defaultConfig, null, 2);
+    Utils.checkFile(PATH_CONFIG, defaultConfigContent);
+
+    this.config = {
+      ...defaultConfig,
+      ...JSON.parse(fs.readFileSync(PATH_CONFIG, { encoding: 'utf-8' })),
+    };
     Logger.getInstance().debug('Config file loaded', 'pronouncer');
   }
 
@@ -52,7 +70,12 @@ export default class Pronouncer {
     youdao: { appKey: string; key: string };
     pixabay: { key: string };
     deepseek: { key: string; model: 'deepseek-chat' };
-    preference: { fetchWhenAddItem: boolean };
+    preference: {
+      fetchWhenAddItem: boolean;
+      autoCleanCache: boolean;
+      autoOpenFolder: boolean;
+      flashAttention: boolean;
+    };
   }) {
     this.config = { ...config, projects: this.config.projects };
     this.saveConfig();
@@ -211,6 +234,9 @@ export interface AppConfig {
 
 export interface ConfigPreference {
   fetchWhenAddItem: boolean;
+  autoCleanCache: boolean;
+  autoOpenFolder: boolean;
+  flashAttention: boolean;
 }
 
 export type ProjectList = {

@@ -1,5 +1,14 @@
 import { JSX, useEffect, useState, useCallback } from 'react';
-import { styled, ThemeProvider, createTheme, Snackbar, Alert, Box, CssBaseline, GlobalStyles } from '@mui/material';
+import {
+  styled,
+  ThemeProvider,
+  createTheme,
+  Snackbar,
+  Alert,
+  Box,
+  CssBaseline,
+  GlobalStyles,
+} from '@mui/material';
 import CreateProjectDialog from './CreateProject';
 import ProjectListDialog from './ProjectList';
 import SettingsDialog from './Settings';
@@ -8,16 +17,14 @@ import MainWindow from './MainWindow';
 import ProjectManifestEditor from './ProjectManifestEditor';
 import TitleBar from './TitleBar';
 
-// 定义内容容器
 const ContentContainer = styled(Box)({
   width: '100%',
-  height: 'calc(100% - 32px)', // 减去标题栏的高度
-  marginTop: '32px', // 为标题栏留出空间
+  height: 'calc(100% - 32px)',
+  marginTop: '32px',
   position: 'relative',
-  overflow: 'hidden', // 修改为hidden，不再处理滚动
+  overflow: 'hidden',
   display: 'flex',
   flexDirection: 'column',
-  // 删除滚动条样式，由子组件自行处理滚动
 });
 
 export const customTheme = createTheme({
@@ -184,7 +191,6 @@ function App(): JSX.Element {
     [manifestEditorProject, showAlert]
   );
 
-  // 根据当前视图设置标题栏标题
   const getTitleBarTitle = () => {
     if (currentView === 'editor' && currentProject) {
       return `YoudaoPronouncer - ${currentProject}`;
@@ -195,7 +201,7 @@ function App(): JSX.Element {
   return (
     <ThemeProvider theme={customTheme}>
       <CssBaseline />
-      <GlobalStyles 
+      <GlobalStyles
         styles={{
           '*::-webkit-scrollbar': {
             width: '8px',
@@ -217,16 +223,16 @@ function App(): JSX.Element {
             scrollbarWidth: 'thin',
             scrollbarColor: 'rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05)',
           },
-          'body': {
+          body: {
             overflow: 'hidden',
-          }
+          },
         }}
       />
-      
-      {/* 标题栏组件 */}
+
+      {}
       <TitleBar title={getTitleBarTitle()} heightPx={32} />
-      
-      {/* 内容区域 */}
+
+      {}
       <ContentContainer>
         {currentView === 'home' ? (
           <MainWindow

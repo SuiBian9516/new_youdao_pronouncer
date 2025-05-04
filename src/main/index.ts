@@ -16,24 +16,25 @@ function createWindow(): void {
     minHeight: 600,
     show: false,
     autoHideMenuBar: true,
-    frame:false,
+    frame: false,
     icon: join(process.cwd(), 'app.ico'),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
-      contextIsolation: false, // 禁用上下文隔离
-      nodeIntegration: true,  // 启用 Node.js 集成
+      contextIsolation: false,
+      nodeIntegration: true,
+      spellcheck: false,
     },
   });
 
-  // 设置内容安全策略，允许连接到 jinrishici API 和执行内联脚本
   mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-    const csp = "default-src 'self'; connect-src 'self' https://v2.jinrishici.com https://www.bing.com; img-src 'self' data: https://www.bing.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src 'self';";
+    const csp =
+      "default-src 'self'; connect-src 'self' https://v2.jinrishici.com https://www.bing.com; img-src 'self' data: https://www.bing.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src 'self';";
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        'Content-Security-Policy': [csp]
-      }
+        'Content-Security-Policy': [csp],
+      },
     });
   });
 
@@ -53,19 +54,19 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
   }
 
-  ipcMain.handle('window:max', async ()=>{
-    if(mainWindow.isMaximized()){
+  ipcMain.handle('window:max', async () => {
+    if (mainWindow.isMaximized()) {
       mainWindow.restore();
-    }else{
+    } else {
       mainWindow.maximize();
     }
   });
 
-  ipcMain.handle('window:min', async ()=>{
+  ipcMain.handle('window:min', async () => {
     mainWindow.minimize();
   });
 
-  ipcMain.handle('window:close', async ()=>{
+  ipcMain.handle('window:close', async () => {
     mainWindow.close();
   });
 }
@@ -108,9 +109,7 @@ ipcMain.handle('setting:get', async () => {
       deepseek: {
         apiKey: deepseekConfig?.key || '',
       },
-      preference: {
-        fetchWhenAddItem: preference?.fetchWhenAddItem || false,
-      },
+      preference: preference,
     };
   } catch (error) {
     Logger.getInstance().error(`Unable to get config: ${error}`, 'main');
@@ -442,7 +441,7 @@ ipcMain.handle('database:delete-items', async (_, itemIds: string[]) => {
 
     const database = currentProject.getDatabase();
     const items = database.getItems();
-    
+
     const itemMap = new Map();
     items.forEach(item => {
       itemMap.set(item.id, item);
@@ -469,7 +468,7 @@ ipcMain.handle('database:delete-items', async (_, itemIds: string[]) => {
     database.save();
 
     Logger.getInstance().info(`Bulk deleted ${deletedItems.length} items`, 'main');
-    
+
     return {
       success: true,
       message: `成功删除 ${deletedItems.length} 项${failedItems.length > 0 ? `，${failedItems.length} 项删除失败` : ''}`,
@@ -632,11 +631,15 @@ ipcMain.handle('project:generate-video', async (_, projectName, outputPath) => {
       project.getAudioCachePath(),
       project.getImageCachePath()
     );
-    BrowserWindow.getAllWindows()[0]?.setProgressBar(0.5,{mode:'indeterminate'});
+    BrowserWindow.getAllWindows()[0]?.setProgressBar(0.5, { mode: 'indeterminate' });
     await fetcher.audioFetch();
     await fetcher.imageFetch();
     await project.generateVideo(finalOutputPath);
-    
+
+    if (pronouncer.getPreference().autoCleanCache) {
+      Logger.getInstance().info('Clean cache automatically', 'main');
+      project.clearCache();
+    }
 
     const projectInfo = pronouncer.getProjects().find(p => p.name === projectName);
     if (projectInfo) {
@@ -645,7 +648,13 @@ ipcMain.handle('project:generate-video', async (_, projectName, outputPath) => {
     }
 
     Logger.getInstance().info(`Success to generate video: ${finalOutputPath}`, 'main');
-    BrowserWindow.getAllWindows()[0]?.setProgressBar(-1,{mode:'none'});
+    BrowserWindow.getAllWindows()[0]?.setProgressBar(-1, { mode: 'none' });
+    if (pronouncer.getPreference().autoOpenFolder) {
+      shell.showItemInFolder(finalOutputPath);
+    }
+    if (pronouncer.getPreference().flashAttention) {
+      BrowserWindow.getAllWindows()[0].flashFrame(true);
+    }
     return {
       success: true,
       filePath: finalOutputPath,
@@ -653,7 +662,7 @@ ipcMain.handle('project:generate-video', async (_, projectName, outputPath) => {
     };
   } catch (error) {
     Logger.getInstance().error(`Fail to generate video: ${error}`, 'main');
-    BrowserWindow.getAllWindows()[0]?.setProgressBar(0.5,{mode:'error'});
+    BrowserWindow.getAllWindows()[0]?.setProgressBar(0.5, { mode: 'error' });
     return {
       success: false,
       message: `生成视频时发生错误: ${error}`,

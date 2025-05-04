@@ -41,6 +41,9 @@ interface Config {
   };
   preference: {
     fetchWhenAddItem: boolean;
+    autoCleanCache: boolean;
+    autoOpenFolder: boolean;
+    flashAttention: boolean;
   };
 }
 
@@ -101,6 +104,9 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     },
     preference: {
       fetchWhenAddItem: false,
+      autoCleanCache: true,
+      autoOpenFolder: true,
+      flashAttention: false,
     },
   });
 
@@ -245,6 +251,75 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                   <Typography variant="body2" color="text.secondary" mt={1} ml={3}>
                     启用后，添加新词条时会自动获取相关的音频和图片
                   </Typography>
+
+                  <Box display="flex" alignItems="center" mt={2}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={config.preference.autoCleanCache}
+                          onChange={e => {
+                            setConfig(prev => ({
+                              ...prev,
+                              preference: {
+                                ...prev.preference,
+                                autoCleanCache: e.target.checked,
+                              },
+                            }));
+                          }}
+                        />
+                      }
+                      label="自动清理缓存"
+                    />
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" mt={1} ml={3}>
+                    启用后，在视频生成完毕后清除缓存文件
+                  </Typography>
+
+                  <Box display="flex" alignItems="center" mt={2}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={config.preference.autoOpenFolder}
+                          onChange={e => {
+                            setConfig(prev => ({
+                              ...prev,
+                              preference: {
+                                ...prev.preference,
+                                autoOpenFolder: e.target.checked,
+                              },
+                            }));
+                          }}
+                        />
+                      }
+                      label="自动打开文件夹"
+                    />
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" mt={1} ml={3}>
+                    启用后，生成结束后会打开保存视频的文件夹
+                  </Typography>
+
+                  <Box display="flex" alignItems="center" mt={2}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={config.preference.flashAttention}
+                          onChange={e => {
+                            setConfig(prev => ({
+                              ...prev,
+                              preference: {
+                                ...prev.preference,
+                                flashAttention: e.target.checked,
+                              },
+                            }));
+                          }}
+                        />
+                      }
+                      label="闪烁提醒功能"
+                    />
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" mt={1} ml={3}>
+                    启用后，视频生成完毕后会在任务栏闪烁提示
+                  </Typography>
                 </Box>
               </TabPanel>
 
@@ -328,9 +403,10 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                       margin="dense"
                       label="API密钥"
                       value={config.deepseek.apiKey}
-                      onChange={e => handleChange('deepseek', 'apiKey', e.target.value)}
+                      onChange={e => handleChange('deepseek', 'key', e.target.value)}
                       variant="outlined"
                       type="password"
+                      sx={{ mb: 2 }}
                     />
                     <Typography variant="body2" color="text.secondary" mt={1}>
                       用于AI辅助使用软件
