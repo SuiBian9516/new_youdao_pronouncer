@@ -1,35 +1,23 @@
 import { JSX, useEffect, useState, useCallback } from 'react';
-import { styled, ThemeProvider, createTheme, Snackbar, Alert } from '@mui/material';
+import { styled, ThemeProvider, createTheme, Snackbar, Alert, Box, CssBaseline, GlobalStyles } from '@mui/material';
 import CreateProjectDialog from './CreateProject';
 import ProjectListDialog from './ProjectList';
 import SettingsDialog from './Settings';
 import ItemEditor from './ItemEditor';
 import MainWindow from './MainWindow';
 import ProjectManifestEditor from './ProjectManifestEditor';
+import TitleBar from './TitleBar';
 
-const GlobalStyles = styled('style')({
-  '@global': {
-    html: {
-      margin: 0,
-      padding: 0,
-      overflow: 'hidden',
-      width: '100vw',
-      height: '100vh',
-    },
-    body: {
-      margin: 0,
-      padding: 0,
-      overflow: 'hidden',
-      width: '100vw',
-      height: '100vh',
-    },
-    '#root': {
-      width: '100%',
-      height: '100%',
-      position: 'relative',
-      overflow: 'hidden',
-    },
-  },
+// 定义内容容器
+const ContentContainer = styled(Box)({
+  width: '100%',
+  height: 'calc(100% - 32px)', // 减去标题栏的高度
+  marginTop: '32px', // 为标题栏留出空间
+  position: 'relative',
+  overflow: 'hidden', // 修改为hidden，不再处理滚动
+  display: 'flex',
+  flexDirection: 'column',
+  // 删除滚动条样式，由子组件自行处理滚动
 });
 
 export const customTheme = createTheme({
@@ -76,16 +64,13 @@ export const customTheme = createTheme({
 
 function App(): JSX.Element {
   const [backgroundUrl, setBackgroundUrl] = useState<string>('');
-
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [projectListDialogOpen, setProjectListDialogOpen] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [manifestEditorOpen, setManifestEditorOpen] = useState(false);
   const [manifestEditorProject, _setManifestEditorProject] = useState<string | null>(null);
-
   const [currentView, setCurrentView] = useState<'home' | 'editor'>('home');
   const [currentProject, setCurrentProject] = useState<string | null>(null);
-
   const [alert, setAlert] = useState<{
     open: boolean;
     message: string;
@@ -199,20 +184,61 @@ function App(): JSX.Element {
     [manifestEditorProject, showAlert]
   );
 
+  // 根据当前视图设置标题栏标题
+  const getTitleBarTitle = () => {
+    if (currentView === 'editor' && currentProject) {
+      return `YoudaoPronouncer - ${currentProject}`;
+    }
+    return 'YoudaoPronouncer';
+  };
+
   return (
     <ThemeProvider theme={customTheme}>
-      <GlobalStyles />
-
-      {currentView === 'home' ? (
-        <MainWindow
-          backgroundUrl={backgroundUrl}
-          onCreateProject={() => setCreateDialogOpen(true)}
-          onOpenProject={() => setProjectListDialogOpen(true)}
-          onOpenSettings={() => setSettingsDialogOpen(true)}
-        />
-      ) : (
-        <ItemEditor onBack={handleBackToHome} projectName={currentProject || '未知项目'} />
-      )}
+      <CssBaseline />
+      <GlobalStyles 
+        styles={{
+          '*::-webkit-scrollbar': {
+            width: '8px',
+            height: '8px',
+            backgroundColor: 'transparent',
+          },
+          '*::-webkit-scrollbar-track': {
+            background: 'rgba(0, 0, 0, 0.05)',
+            borderRadius: '4px',
+          },
+          '*::-webkit-scrollbar-thumb': {
+            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+            borderRadius: '4px',
+          },
+          '*::-webkit-scrollbar-thumb:hover': {
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+          },
+          '*': {
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05)',
+          },
+          'body': {
+            overflow: 'hidden',
+          }
+        }}
+      />
+      
+      {/* 标题栏组件 */}
+      <TitleBar title={getTitleBarTitle()} heightPx={32} />
+      
+      {/* 内容区域 */}
+      <ContentContainer>
+        {currentView === 'home' ? (
+          <MainWindow
+            backgroundUrl={backgroundUrl}
+            onCreateProject={() => setCreateDialogOpen(true)}
+            onOpenProject={() => setProjectListDialogOpen(true)}
+            onOpenSettings={() => setSettingsDialogOpen(true)}
+          />
+        ) : (
+          <ItemEditor onBack={handleBackToHome} projectName={currentProject || '未知项目'} />
+        )}
+      </ContentContainer>
 
       <CreateProjectDialog
         open={createDialogOpen}

@@ -57,6 +57,9 @@ const api = {
   deleteItem: async itemName => {
     return await ipcRenderer.invoke('database:delete-item', itemName);
   },
+  deleteItems: async (itemIds: string[]) => {
+    return await ipcRenderer.invoke('database:delete-items', itemIds);
+  },
   saveItemsOrder: async items => {
     return await ipcRenderer.invoke('database:save-order', items);
   },
@@ -121,6 +124,15 @@ const api = {
   importDatabaseFile: async () => {
     return await ipcRenderer.invoke('database:import');
   },
+  maximizeWindow: async() =>{
+    return await ipcRenderer.invoke('window:max');
+  },
+  minimizeWindow: async() =>{
+    return await ipcRenderer.invoke('window:min');
+  },
+  closeWindow: async() =>{
+    return await ipcRenderer.invoke('window:close');
+  }
 };
 
 if (process.contextIsolated) {

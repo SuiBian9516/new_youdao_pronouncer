@@ -28,6 +28,7 @@ import {
   Avatar,
   Skeleton,
   Fade,
+  Checkbox,
 } from '@mui/material';
 import { customTheme } from './App';
 import AddIcon from '@mui/icons-material/Add';
@@ -86,6 +87,11 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [draggedOverItem, setDraggedOverItem] = useState<number | null>(null);
+
+  // 批量管理相关状态
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [confirmBulkDeleteOpen, setConfirmBulkDeleteOpen] = useState(false);
 
   const [fetchingData, setFetchingData] = useState(false);
   const [progressMessage, setProgressMessage] = useState<string>('');
@@ -917,337 +923,490 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
     fetchAllData();
   };
 
+  const handleSelectItem = (itemId: string) => {
+    setSelectedItems(prevSelectedItems => {
+      const newSelectedItems = new Set(prevSelectedItems);
+      if (newSelectedItems.has(itemId)) {
+        newSelectedItems.delete(itemId);
+      } else {
+        newSelectedItems.add(itemId);
+      }
+      return newSelectedItems;
+    });
+  };
+
+  const handleSelectAllItems = () => {
+    setSelectedItems(prevSelectedItems => {
+      if (prevSelectedItems.size === filteredItems.length) {
+        return new Set();
+      } else {
+        return new Set(filteredItems.map(item => item.id));
+      }
+    });
+  };
+
+  const handleOpenBulkDeleteDialog = () => {
+    setConfirmBulkDeleteOpen(true);
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      const result = await window.api.deleteItems(Array.from(selectedItems));
+
+      if (result.success) {
+        showAlert('批量删除成功', 'success');
+        setConfirmBulkDeleteOpen(false);
+        setSelectedItems(new Set());
+        loadItems();
+      } else {
+        showAlert(result.message || '批量删除失败', 'error');
+      }
+    } catch (error) {
+      console.error('批量删除失败:', error);
+      showAlert('批量删除失败', 'error');
+    }
+  };
+
   return (
     <ThemeProvider theme={customTheme}>
       <Box
         sx={{
           height: '100%',
-          width: '100%',
-          overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
+          boxSizing: 'border-box',
+          overflow: 'hidden', // 确保外层容器不显示滚动条
         }}
       >
+        {/* 标题栏区域 - 固定不滚动 */}
         <Box
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            mb: 2,
-            flexWrap: 'wrap',
-            width: '100%',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', flex: 1 }}>
-            <IconButton onClick={onBack} sx={{ mr: 1 }} disabled={generatingVideo || fetchingData}>
-              <ArrowBackIcon />
-            </IconButton>
-            <Typography variant="h5" component="h1" noWrap sx={{ mr: 2 }}>
-              项目数据管理
-            </Typography>
-            <Chip
-              icon={<FolderIcon />}
-              label={projectName}
-              color="primary"
-              sx={{ ml: { xs: 0, sm: 2 }, mt: { xs: 1, sm: 0 } }}
-              variant="outlined"
-            />
-          </Box>
-
-          <Box sx={{ display: 'flex' }}>
-            <Tooltip title="获取数据">
-              <span>
-                <IconButton color="primary" onClick={handleGetData} disabled={fetchingData}>
-                  <CloudDownloadIcon />
-                </IconButton>
-              </span>
-            </Tooltip>
-
-            <Tooltip title="清除缓存">
-              <span>
-                <IconButton
-                  color="warning"
-                  onClick={handleOpenClearCacheDialog}
-                  disabled={clearingCache}
-                >
-                  <ClearAllIcon />
-                </IconButton>
-              </span>
-            </Tooltip>
-
-            <Tooltip title="生成视频">
-              <span>
-                <IconButton
-                  color="secondary"
-                  onClick={handleOpenGenerateVideoDialog}
-                  disabled={generatingVideo || items.length === 0}
-                >
-                  <VideoFileIcon />
-                </IconButton>
-              </span>
-            </Tooltip>
-
-            <Tooltip title="项目设置">
-              <IconButton color="primary" onClick={handleOpenProjectManifest} sx={{ ml: 1 }}>
-                <SettingsIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        </Box>
-        <Paper
-          sx={{
-            p: { xs: 1, sm: 2 },
-            mb: 2,
-            width: '100%',
-            boxSizing: 'border-box',
-          }}
-        >
-          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
-            <Box sx={{ flex: 1 }}>
-              <TextField
-                fullWidth
-                placeholder="搜索数据项..."
-                defaultValue={searchQuery}
-                onChange={handleSearch}
-                variant="outlined"
-                size="small"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Box>
-            <Box
-              sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, gap: 2 }}
-            >
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                onClick={handleOpenAddDialog}
-                size="small"
-              >
-                添加数据项
-              </Button>
-              <Button
-                variant="contained"
-                color="secondary"
-                startIcon={<FileUploadIcon />}
-                onClick={() => setImportExportDialogOpen(true)}
-                size="small"
-              >
-                导入与导出
-              </Button>
-            </Box>
-          </Box>
-        </Paper>
-
-        {(showProgress || generatingVideo) && (
-          <Paper sx={{ p: 2, mb: 2, width: '100%', boxSizing: 'border-box' }}>
-            <Box sx={{ width: '100%' }}>
-              <Typography variant="subtitle1" gutterBottom>
-                {progressMessage ||
-                  (generatingVideo ? '正在生成视频，这需要一些时间' : '正在处理...')}
-              </Typography>
-              <LinearProgress color="primary" />
-            </Box>
-          </Paper>
-        )}
-
-        <Paper
-          sx={{
-            width: '100%',
-            flexGrow: 1,
+            p: 2,
+            pb: 1,
             display: 'flex',
             flexDirection: 'column',
-            boxSizing: 'border-box',
-            overflow: 'hidden',
           }}
         >
-          {loading ? (
-            <Fade in={loading}>
-              <Box sx={{ width: '100%', padding: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                  <Skeleton variant="circular" width={32} height={32} sx={{ mr: 2 }} />
-                  <Skeleton variant="text" width="40%" height={32} />
-                </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              mb: 2,
+              flexWrap: 'wrap',
+              width: '100%',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', flex: 1 }}>
+              <IconButton onClick={onBack} sx={{ mr: 1 }} disabled={generatingVideo || fetchingData}>
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography variant="h5" component="h1" noWrap sx={{ mr: 2 }}>
+                {bulkMode ? '批量管理模式' : '项目数据管理'}
+              </Typography>
+              <Chip
+                icon={<FolderIcon />}
+                label={projectName}
+                color="primary"
+                sx={{ ml: { xs: 0, sm: 2 }, mt: { xs: 1, sm: 0 } }}
+                variant="outlined"
+              />
+            </Box>
 
-                {[...Array(6)].map((_, index) => (
-                  <Box key={index} sx={{ display: 'flex', mb: 2, alignItems: 'center' }}>
-                    <Skeleton variant="rectangular" width={24} height={24} sx={{ mr: 2, ml: 1 }} />
-                    <Box sx={{ width: '100%' }}>
-                      <Box sx={{ display: 'flex', width: '100%' }}>
-                        <Skeleton variant="text" width="15%" sx={{ mr: 1 }} />
-                        <Skeleton variant="text" width="20%" sx={{ mr: 1 }} />
-                        <Skeleton variant="text" width="20%" sx={{ mr: 1 }} />
-                        <Skeleton variant="text" width="20%" sx={{ mr: 1 }} />
-                        <Skeleton
-                          variant="rectangular"
-                          width={80}
-                          height={24}
-                          sx={{ borderRadius: 1 }}
-                        />
-                      </Box>
-                      {index % 2 === 0 && (
-                        <Box sx={{ mt: 0.5, pl: 0.5 }}>
-                          <Skeleton variant="text" width="60%" height={16} />
-                        </Box>
-                      )}
-                    </Box>
-                  </Box>
-                ))}
+            {!bulkMode && (
+              <Box sx={{ display: 'flex' }}>
+                <Tooltip title="获取数据">
+                  <span>
+                    <IconButton color="primary" onClick={handleGetData} disabled={fetchingData}>
+                      <CloudDownloadIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
 
-                <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
-                  <Skeleton
-                    variant="rectangular"
-                    width={180}
-                    height={36}
-                    sx={{ borderRadius: 1 }}
-                  />
+                <Tooltip title="清除缓存">
+                  <span>
+                    <IconButton
+                      color="warning"
+                      onClick={handleOpenClearCacheDialog}
+                      disabled={clearingCache}
+                    >
+                      <ClearAllIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+
+                <Tooltip title="生成视频">
+                  <span>
+                    <IconButton
+                      color="secondary"
+                      onClick={handleOpenGenerateVideoDialog}
+                      disabled={generatingVideo || items.length === 0}
+                    >
+                      <VideoFileIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+
+                <Tooltip title="项目设置">
+                  <IconButton color="primary" onClick={handleOpenProjectManifest} sx={{ ml: 1 }}>
+                    <SettingsIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            )}
+          </Box>
+          
+          <Paper
+            sx={{
+              p: { xs: 1, sm: 2 },
+              mb: 2,
+              width: '100%',
+              boxSizing: 'border-box',
+            }}
+          >
+            {bulkMode ? (
+              // 批量管理模式下显示的工具栏
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="subtitle1">
+                  已选择 {selectedItems.size} 项（共 {filteredItems.length} 项）
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    startIcon={<DeleteIcon />}
+                    disabled={selectedItems.size === 0}
+                    onClick={handleOpenBulkDeleteDialog}
+                  >
+                    批量删除
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setBulkMode(false);
+                      setSelectedItems(new Set());
+                    }}
+                  >
+                    退出批量管理
+                  </Button>
                 </Box>
               </Box>
-            </Fade>
-          ) : items.length === 0 ? (
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100%',
-              }}
-            >
-              <Typography variant="h6" color="text.secondary">
-                还没有数据项
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                点击"添加数据项"按钮开始创建
-              </Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                onClick={handleOpenAddDialog}
-                sx={{ mt: 2 }}
-              >
-                添加数据项
-              </Button>
-            </Box>
-          ) : (
-            <TableContainer
-              sx={{
-                height: '100%',
-                overflow: 'auto',
-                '&::-webkit-scrollbar': {
-                  width: '8px',
-                  height: '8px',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                  borderRadius: '4px',
-                },
-              }}
-            >
-              <Table stickyHeader size="small" sx={{ tableLayout: 'fixed' }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell
-                      padding="checkbox"
-                      width="40px"
-                      sx={{ width: '40px', maxWidth: '40px' }}
-                    ></TableCell>
-                    <TableCell sx={{ width: '15%' }}>名称</TableCell>
-                    <TableCell sx={{ width: '20%' }}>释义</TableCell>
-                    <TableCell sx={{ width: '20%' }}>例句</TableCell>
-                    <TableCell sx={{ width: '20%' }}>例句释义</TableCell>
-                    <TableCell sx={{ width: '5%' }}>次数</TableCell>
-                    <TableCell align="center" sx={{ width: '80px' }}>
-                      操作
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredItems.map((item, index) => (
-                    <TableRow
-                      key={item.id}
-                      draggable
-                      onDragStart={() => handleDragStart(index)}
-                      onDragEnter={() => handleDragEnter(index)}
-                      onDragOver={handleDragOver}
-                      onDragEnd={handleDragEnd}
-                      onDrop={handleDrop}
-                      sx={{
-                        backgroundColor:
-                          draggedItem === index
-                            ? 'rgba(63, 81, 181, 0.12)'
-                            : draggedOverItem === index
-                              ? 'rgba(63, 81, 181, 0.04)'
-                              : 'transparent',
-                        '&:hover': {
-                          backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                        },
-                      }}
-                    >
-                      <TableCell padding="checkbox">
-                        <Box
-                          sx={{
-                            cursor: 'grab',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            '&:hover': {
-                              backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                              borderRadius: '4px',
-                            },
-                            '&:active': {
-                              cursor: 'grabbing',
-                            },
-                          }}
-                        >
-                          <DragHandleIcon color="action" fontSize="small" />
+            ) : (
+              // 正常模式下显示的工具栏
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+                <Box sx={{ flex: 1 }}>
+                  <TextField
+                    fullWidth
+                    placeholder="搜索数据项..."
+                    defaultValue={searchQuery}
+                    onChange={handleSearch}
+                    variant="outlined"
+                    size="small"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Box>
+                <Box
+                  sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, gap: 2 }}
+                >
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => setBulkMode(true)}
+                    size="small"
+                  >
+                    批量管理
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<AddIcon />}
+                    onClick={handleOpenAddDialog}
+                    size="small"
+                  >
+                    添加数据项
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    startIcon={<FileUploadIcon />}
+                    onClick={() => setImportExportDialogOpen(true)}
+                    size="small"
+                  >
+                    导入与导出
+                  </Button>
+                </Box>
+              </Box>
+            )}
+          </Paper>
+
+          {(showProgress || generatingVideo) && (
+            <Paper sx={{ p: 2, mb: 2, width: '100%', boxSizing: 'border-box' }}>
+              <Box sx={{ width: '100%' }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  {progressMessage ||
+                    (generatingVideo ? '正在生成视频，这需要一些时间' : '正在处理...')}
+                </Typography>
+                <LinearProgress color="primary" />
+              </Box>
+            </Paper>
+          )}
+        </Box>
+        
+        {/* 可滚动内容区域 */}
+        <Box 
+          sx={{
+            flex: 1,
+            overflow: 'auto', // 只在内容区域添加滚动
+            px: 2,
+            pb: 2,
+            '&::-webkit-scrollbar': {
+              width: '8px',
+              height: '8px',
+              backgroundColor: 'transparent',
+            },
+            '&::-webkit-scrollbar-track': {
+              background: 'rgba(0, 0, 0, 0.05)',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: 'rgba(0, 0, 0, 0.2)',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            },
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05)',
+          }}
+        >
+          <Paper
+            sx={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              boxSizing: 'border-box',
+              overflow: 'hidden', // 确保内容不溢出
+            }}
+          >
+            {loading ? (
+              <Fade in={loading}>
+                <Box sx={{ width: '100%', padding: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                    <Skeleton variant="circular" width={32} height={32} sx={{ mr: 2 }} />
+                    <Skeleton variant="text" width="40%" height={32} />
+                  </Box>
+
+                  {[...Array(6)].map((_, index) => (
+                    <Box key={index} sx={{ display: 'flex', mb: 2, alignItems: 'center' }}>
+                      <Skeleton variant="rectangular" width={24} height={24} sx={{ mr: 2, ml: 1 }} />
+                      <Box sx={{ width: '100%' }}>
+                        <Box sx={{ display: 'flex', width: '100%' }}>
+                          <Skeleton variant="text" width="15%" sx={{ mr: 1 }} />
+                          <Skeleton variant="text" width="20%" sx={{ mr: 1 }} />
+                          <Skeleton variant="text" width="20%" sx={{ mr: 1 }} />
+                          <Skeleton variant="text" width="20%" sx={{ mr: 1 }} />
+                          <Skeleton
+                            variant="rectangular"
+                            width={80}
+                            height={24}
+                            sx={{ borderRadius: 1 }}
+                          />
                         </Box>
-                      </TableCell>
+                        {index % 2 === 0 && (
+                          <Box sx={{ mt: 0.5, pl: 0.5 }}>
+                            <Skeleton variant="text" width="60%" height={16} />
+                          </Box>
+                        )}
+                      </Box>
+                    </Box>
+                  ))}
+
+                  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+                    <Skeleton
+                      variant="rectangular"
+                      width={180}
+                      height={36}
+                      sx={{ borderRadius: 1 }}
+                    />
+                  </Box>
+                </Box>
+              </Fade>
+            ) : items.length === 0 ? (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100%',
+                }}
+              >
+                <Typography variant="h6" color="text.secondary">
+                  还没有数据项
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  点击"添加数据项"按钮开始创建
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<AddIcon />}
+                  onClick={handleOpenAddDialog}
+                  sx={{ mt: 2 }}
+                >
+                  添加数据项
+                </Button>
+              </Box>
+            ) : (
+              <TableContainer 
+                component={Paper}
+                sx={{ 
+                  height: '100%',
+                  maxHeight: '100%',
+                  overscrollBehavior: 'contain',
+                  overflowX: 'hidden', // 隐藏横向滚动条
+                  '&::-webkit-scrollbar': {
+                    width: '8px',
+                    height: '0', // 将横向滚动条高度设为0
+                    backgroundColor: 'transparent',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: 'rgba(0, 0, 0, 0.05)',
+                    borderRadius: '4px',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                    borderRadius: '4px',
+                  },
+                  '&::-webkit-scrollbar-thumb:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                  },
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: 'rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05)',
+                }}
+              >
+                <Table stickyHeader size="small" sx={{ tableLayout: 'fixed', minWidth: '100%' }}>
+                  <TableHead>
+                    <TableRow>
                       <TableCell
-                        sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                      >
-                        <Tooltip title={item.name}>
-                          <span>{item.name}</span>
-                        </Tooltip>
+                        padding="checkbox"
+                        width="40px"
+                        sx={{ width: '40px', maxWidth: '40px' }}
+                      ></TableCell>
+                      <TableCell padding="checkbox" width="40px" sx={{ width: '40px' }}>
+                        {bulkMode && (
+                          <Checkbox
+                            checked={filteredItems.length > 0 && selectedItems.size === filteredItems.length}
+                            indeterminate={selectedItems.size > 0 && selectedItems.size < filteredItems.length}
+                            onChange={handleSelectAllItems}
+                          />
+                        )}
                       </TableCell>
-                      <TableCell
-                        sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                      >
-                        <Tooltip title={item.description[0]}>
-                          <span>{item.description[0]}</span>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell
-                        sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                      >
-                        <Tooltip title={item.example}>
-                          <span>{item.example}</span>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell
-                        sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                      >
-                        <Tooltip title={item.description[1]}>
-                          <span>{item.description[1]}</span>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell>{item.count}</TableCell>
-                      <TableCell align="center" padding="checkbox">
-                        {renderTableActions(item)}
+                      <TableCell sx={{ width: '15%', minWidth: '80px' }}>名称</TableCell>
+                      <TableCell sx={{ width: '20%', minWidth: '100px' }}>释义</TableCell>
+                      <TableCell sx={{ width: '20%', minWidth: '100px' }}>例句</TableCell>
+                      <TableCell sx={{ width: '20%', minWidth: '100px' }}>例句释义</TableCell>
+                      <TableCell sx={{ width: '5%', minWidth: '40px', whiteSpace: 'nowrap' }}>次数</TableCell>
+                      <TableCell align="center" sx={{ width: '80px', minWidth: '80px' }}>
+                        操作
                       </TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </Paper>
+                  </TableHead>
+                  <TableBody>
+                    {filteredItems.map((item, index) => (
+                      <TableRow
+                        key={item.id}
+                        draggable
+                        onDragStart={() => handleDragStart(index)}
+                        onDragEnter={() => handleDragEnter(index)}
+                        onDragOver={handleDragOver}
+                        onDragEnd={handleDragEnd}
+                        onDrop={handleDrop}
+                        sx={{
+                          backgroundColor:
+                            draggedItem === index
+                              ? 'rgba(63, 81, 181, 0.12)'
+                              : draggedOverItem === index
+                                ? 'rgba(63, 81, 181, 0.04)'
+                                : 'transparent',
+                          '&:hover': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                          },
+                        }}
+                      >
+                        <TableCell padding="checkbox">
+                          <Box
+                            sx={{
+                              cursor: 'grab',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              '&:hover': {
+                                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                                borderRadius: '4px',
+                              },
+                              '&:active': {
+                                cursor: 'grabbing',
+                              },
+                            }}
+                          >
+                            <DragHandleIcon color="action" fontSize="small" />
+                          </Box>
+                        </TableCell>
+                        <TableCell padding="checkbox">
+                          {bulkMode && (
+                            <Checkbox
+                              checked={selectedItems.has(item.id)}
+                              onChange={() => handleSelectItem(item.id)}
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell
+                          sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        >
+                          <Tooltip title={item.name}>
+                            <span>{item.name}</span>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell
+                          sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        >
+                          <Tooltip title={item.description[0]}>
+                            <span>{item.description[0]}</span>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell
+                          sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        >
+                          <Tooltip title={item.example}>
+                            <span>{item.example}</span>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell
+                          sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        >
+                          <Tooltip title={item.description[1]}>
+                            <span>{item.description[1]}</span>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell>{item.count}</TableCell>
+                        <TableCell align="center" padding="checkbox">
+                          {renderTableActions(item)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </Paper>
+        </Box>
 
         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md" fullWidth>
           <DialogTitle>
@@ -1361,6 +1520,21 @@ export default function ItemEditor({ onBack, projectName }: ItemEditorProps) {
               取消
             </Button>
             <Button onClick={handleDelete} color="error" variant="contained">
+              删除
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={confirmBulkDeleteOpen} onClose={() => setConfirmBulkDeleteOpen(false)}>
+          <DialogTitle>确认批量删除</DialogTitle>
+          <DialogContent>
+            <Typography>您确定要删除选中的 {selectedItems.size} 项数据吗？此操作不可逆。</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setConfirmBulkDeleteOpen(false)} color="inherit">
+              取消
+            </Button>
+            <Button onClick={handleBulkDelete} color="error" variant="contained">
               删除
             </Button>
           </DialogActions>

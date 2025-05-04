@@ -177,6 +177,10 @@ interface Window {
     getMetadata: () => Promise<{ version: string; authors: string[] }>;
     exportDatabaseFile: () => Promise<{ success: boolean; message: string }>;
     importDatabaseFile: () => Promise<{ success: boolean; message: string }>;
+    deleteItems: (itemIds:string[]) => Promise<{ success: boolean; message: string }>;
+    maximizeWindow: () => Promise<void>;
+    minimizeWindow: () => Promise<void>;
+    closeWindow: () => Promise<void>;
   };
 }
 

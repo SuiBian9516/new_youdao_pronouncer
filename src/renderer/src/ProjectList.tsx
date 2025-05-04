@@ -27,21 +27,11 @@ import FolderIcon from '@mui/icons-material/Folder';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import EditIcon from '@mui/icons-material/Edit';
-import ProjectManifestEditor from './ProjectManifestEditor';
 
 interface ProjectInfo {
   name: string;
   path: string;
   lastModifiedTime: string;
-}
-
-interface ProjectManifest {
-  name: string;
-  backgroundColor: string;
-  characterColor: [string, string];
-  title: string;
-  subtitle: string;
 }
 
 interface ProjectListDialogProps {
@@ -58,8 +48,6 @@ export default function ProjectListDialog({
   const [projects, setProjects] = useState<ProjectInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-  const [editProjectName, setEditProjectName] = useState<string | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [alert, setAlert] = useState<{
     open: boolean;
     message: string;
@@ -125,42 +113,6 @@ export default function ProjectListDialog({
       });
     } finally {
       setConfirmDelete(null);
-    }
-  };
-
-  const handleOpenEditDialog = (projectName: string) => {
-    setEditProjectName(projectName);
-    setEditDialogOpen(true);
-  };
-
-  const handleSaveManifest = async (manifest: ProjectManifest) => {
-    if (!editProjectName) return;
-
-    try {
-      const result = await window.api.updateProjectManifest(editProjectName, manifest);
-
-      if (result.success) {
-        setAlert({
-          open: true,
-          message: `项目 "${editProjectName}" 信息已成功更新`,
-          severity: 'success',
-        });
-        setEditDialogOpen(false);
-        loadProjects();
-      } else {
-        setAlert({
-          open: true,
-          message: result.message || `更新项目信息失败`,
-          severity: 'error',
-        });
-      }
-    } catch (error) {
-      console.error('更新项目信息失败:', error);
-      setAlert({
-        open: true,
-        message: `更新项目信息时发生错误`,
-        severity: 'error',
-      });
     }
   };
 
@@ -239,18 +191,6 @@ export default function ProjectListDialog({
                         onClick={() => handleOpenProject(project.name)}
                         secondaryAction={
                           <Box>
-                            <Tooltip title="编辑项目信息">
-                              <IconButton
-                                edge="end"
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  handleOpenEditDialog(project.name);
-                                }}
-                                sx={{ mr: 1 }}
-                              >
-                                <EditIcon />
-                              </IconButton>
-                            </Tooltip>
                             <Tooltip title="删除项目">
                               <IconButton
                                 edge="end"
@@ -337,12 +277,6 @@ export default function ProjectListDialog({
         </DialogActions>
       </Dialog>
 
-      <ProjectManifestEditor
-        open={editDialogOpen}
-        onClose={() => setEditDialogOpen(false)}
-        projectName={editProjectName}
-        onSave={handleSaveManifest}
-      />
       <Snackbar
         open={alert.open}
         autoHideDuration={6000}
